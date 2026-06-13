@@ -1,0 +1,150 @@
+// PFML Tree without root
+digraph {
+	2208798703184 [label="?"]
+	2208798703184 -> 2208798586864
+	2208798586864 [label="cond On(Softdrink,WaterTable)"]
+	2208798586864 [label="cond On(Softdrink,WaterTable)" fillcolor=yellow style=filled]
+	2208798703184 -> 2208798586912
+	2208798586912 [label="→"]
+	2208798586912 -> 2208798586720
+	2208798586720 [label="?"]
+	2208798586720 -> 2208798586624
+	2208798586624 [label="cond Holding(Softdrink)"]
+	2208798586624 [label="cond Holding(Softdrink)" fillcolor=yellow style=filled]
+	2208798586720 -> 2208798586528
+	2208798586528 [label="cond At(Robot,WaterTable)"]
+	2208798586528 [label="cond At(Robot,WaterTable)" fillcolor=yellow style=filled]
+	2208798586720 -> 2208798586432
+	2208798586432 [label="→"]
+	2208798586432 -> 2208798586336
+	2208798586336 [label="?"]
+	2208798586336 -> 2208798586240
+	2208798586240 [label="cond Holding(Nothing)"]
+	2208798586240 [label="cond Holding(Nothing)" fillcolor=yellow style=filled]
+	2208798586336 -> 2208798586144
+	2208798586144 [label="cond At(Robot,Softdrink)"]
+	2208798586144 [label="cond At(Robot,Softdrink)" fillcolor=yellow style=filled]
+	2208798586336 -> 2208798586048
+	2208798586048 [label="cond At(Robot,WaterTable)"]
+	2208798586048 [label="cond At(Robot,WaterTable)" fillcolor=yellow style=filled]
+	2208798586336 -> 2208798585952
+	2208798585952 [label="→"]
+	2208798585952 -> 2208798585856
+	2208798585856 [label="?"]
+	2208798585856 -> 2208798585760
+	2208798585760 [label="cond Holding(Coffee)"]
+	2208798585760 [label="cond Holding(Coffee)" fillcolor=yellow style=filled]
+	2208798585856 -> 2208798585664
+	2208798585664 [label="cond At(Robot,Softdrink)"]
+	2208798585664 [label="cond At(Robot,Softdrink)" fillcolor=yellow style=filled]
+	2208798585856 -> 2208798585568
+	2208798585568 [label="cond At(Robot,WaterTable)"]
+	2208798585568 [label="cond At(Robot,WaterTable)" fillcolor=yellow style=filled]
+	2208798585952 -> 2208798585472
+	2208798585472 [label="act PutDown(Coffee,WaterTable)"]
+	2208798585472 [label="act PutDown(Coffee,WaterTable)" fillcolor=green style=filled]
+	2208798586336 -> 2208798585376
+	2208798585376 [label="→"]
+	2208798585376 -> 2208798585280
+	2208798585280 [label="?"]
+	2208798585280 -> 2208798585184
+	2208798585184 [label="cond At(Robot,Softdrink)"]
+	2208798585184 [label="cond At(Robot,Softdrink)" fillcolor=yellow style=filled]
+	2208798585280 -> 2208798585088
+	2208798585088 [label="cond At(Robot,WaterTable)"]
+	2208798585088 [label="cond At(Robot,WaterTable)" fillcolor=yellow style=filled]
+	2208798585376 -> 2208798584992
+	2208798584992 [label="act PutDown(Anything,Anywhere)"]
+	2208798584992 [label="act PutDown(Anything,Anywhere)" fillcolor=green style=filled]
+	2208798586432 -> 2208798584896
+	2208798584896 [label="act PickUp(Softdrink)"]
+	2208798584896 [label="act PickUp(Softdrink)" fillcolor=green style=filled]
+	2208798586720 -> 2208798584800
+	2208798584800 [label="→"]
+	2208798584800 -> 2208798584704
+	2208798584704 [label="?"]
+	2208798584704 -> 2208798584608
+	2208798584608 [label="cond Holding(Softdrink)"]
+	2208798584608 [label="cond Holding(Softdrink)" fillcolor=yellow style=filled]
+	2208798584704 -> 2208798584512
+	2208798584512 [label="→"]
+	2208798584512 -> 2208798584416
+	2208798584416 [label="?"]
+	2208798584416 -> 2208798584320
+	2208798584320 [label="cond Holding(Nothing)"]
+	2208798584320 [label="cond Holding(Nothing)" fillcolor=yellow style=filled]
+	2208798584416 -> 2208798584224
+	2208798584224 [label="cond At(Robot,Softdrink)"]
+	2208798584224 [label="cond At(Robot,Softdrink)" fillcolor=yellow style=filled]
+	2208798584416 -> 2208798584128
+	2208798584128 [label="→"]
+	2208798584128 -> 2208798584032
+	2208798584032 [label="?"]
+	2208798584032 -> 2208798583936
+	2208798583936 [label="cond Holding(Nothing)"]
+	2208798583936 [label="cond Holding(Nothing)" fillcolor=yellow style=filled]
+	2208798584032 -> 2208798583840
+	2208798583840 [label="cond Exist(Softdrink)"]
+	2208798583840 [label="cond Exist(Softdrink)" fillcolor=yellow style=filled]
+	2208798584032 -> 2208798583744
+	2208798583744 [label="→"]
+	2208798583744 -> 2208798583648
+	2208798583648 [label="cond Holding(Nothing)"]
+	2208798583648 [label="cond Holding(Nothing)" fillcolor=yellow style=filled]
+	2208798583744 -> 2208798582256
+	2208798582256 [label="cond Exist(Softdrink)"]
+	2208798582256 [label="cond Exist(Softdrink)" fillcolor=yellow style=filled]
+	2208798583744 -> 2208798582160
+	2208798582160 [label="act MoveTo(Softdrink)"]
+	2208798582160 [label="act MoveTo(Softdrink)" fillcolor=green style=filled]
+	2208798584032 -> 2208798582064
+	2208798582064 [label="→"]
+	2208798582064 -> 2208798581968
+	2208798581968 [label="cond Holding(Coffee)"]
+	2208798581968 [label="cond Holding(Coffee)" fillcolor=yellow style=filled]
+	2208798582064 -> 2208798581872
+	2208798581872 [label="cond Exist(Softdrink)"]
+	2208798581872 [label="cond Exist(Softdrink)" fillcolor=yellow style=filled]
+	2208798582064 -> 2208798581776
+	2208798581776 [label="act PutDown(Coffee,WaterTable)"]
+	2208798581776 [label="act PutDown(Coffee,WaterTable)" fillcolor=green style=filled]
+	2208798584032 -> 2208798581680
+	2208798581680 [label="→"]
+	2208798581680 -> 2208798581584
+	2208798581584 [label="cond Exist(Softdrink)"]
+	2208798581584 [label="cond Exist(Softdrink)" fillcolor=yellow style=filled]
+	2208798581680 -> 2208798581488
+	2208798581488 [label="act PutDown(Anything,Anywhere)"]
+	2208798581488 [label="act PutDown(Anything,Anywhere)" fillcolor=green style=filled]
+	2208798584128 -> 2208798581392
+	2208798581392 [label="act MoveTo(Softdrink)"]
+	2208798581392 [label="act MoveTo(Softdrink)" fillcolor=green style=filled]
+	2208798584416 -> 2208798581296
+	2208798581296 [label="→"]
+	2208798581296 -> 2208798581200
+	2208798581200 [label="cond Holding(Coffee)"]
+	2208798581200 [label="cond Holding(Coffee)" fillcolor=yellow style=filled]
+	2208798581296 -> 2208798581104
+	2208798581104 [label="cond At(Robot,Softdrink)"]
+	2208798581104 [label="cond At(Robot,Softdrink)" fillcolor=yellow style=filled]
+	2208798581296 -> 2208798581008
+	2208798581008 [label="act PutDown(Coffee,WaterTable)"]
+	2208798581008 [label="act PutDown(Coffee,WaterTable)" fillcolor=green style=filled]
+	2208798584416 -> 2208798580912
+	2208798580912 [label="→"]
+	2208798580912 -> 2208798580816
+	2208798580816 [label="cond At(Robot,Softdrink)"]
+	2208798580816 [label="cond At(Robot,Softdrink)" fillcolor=yellow style=filled]
+	2208798580912 -> 2208798580720
+	2208798580720 [label="act PutDown(Anything,Anywhere)"]
+	2208798580720 [label="act PutDown(Anything,Anywhere)" fillcolor=green style=filled]
+	2208798584512 -> 2208798580624
+	2208798580624 [label="act PickUp(Softdrink)"]
+	2208798580624 [label="act PickUp(Softdrink)" fillcolor=green style=filled]
+	2208798584800 -> 2208798580528
+	2208798580528 [label="act MoveTo(WaterTable)"]
+	2208798580528 [label="act MoveTo(WaterTable)" fillcolor=green style=filled]
+	2208798586912 -> 2208798580432
+	2208798580432 [label="act PutDown(Softdrink,WaterTable)"]
+	2208798580432 [label="act PutDown(Softdrink,WaterTable)" fillcolor=green style=filled]
+}

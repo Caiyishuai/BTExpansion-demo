@@ -1,0 +1,22 @@
+# Byte-compiled / optimized / cache files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# IDE - 仅忽略本地工作区状态，保留共享配置
+.idea/workspace.xml
+.idea/shelf/
+.idea/httpRequests/
+
+# OS
+.DS_Store
