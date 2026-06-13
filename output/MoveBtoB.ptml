@@ -2,11 +2,11 @@ selector{
 cond At(b,ab)
 sequence{
 selector{
-cond WayClear
- cond Free(ab)
+cond Free(ab)
+ cond WayClear
 sequence{
-cond Free(as)
- cond Free(ab)
+cond Free(ab)
+ cond Free(as)
 act Move(s,as)
 }
 }
