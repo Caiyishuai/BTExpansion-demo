@@ -165,6 +165,13 @@ BibTeX：
 
 ---
 
+## 相关项目
+
+- **LLM-OBTEA**：原作者团队（DIDS-EI）基于 OBTEA 的官方扩展项目，将大语言模型与行为树扩展算法结合。
+  <https://github.com/DIDS-EI/LLM-OBTEA>
+
+---
+
 ## 版权与许可
 
 - 算法版权归原论文作者所有：Zhongxuan Cai、Minglong Li、Wanrong Huang、Wenjing Yang（National University of Defense Technology / National Innovation Institute of Defense Technology）。

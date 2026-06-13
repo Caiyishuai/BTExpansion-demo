@@ -194,6 +194,8 @@
   .cite-meta { margin-top: 16px; display: flex; gap: 10px; flex-wrap: wrap; }
   .cite-meta .pill { background: var(--card); }
   .cite-meta .pill.link { color: var(--primary); }
+  .related-card { display: block; text-decoration: none; transition: transform .15s ease, box-shadow .15s ease; }
+  .related-card:hover { transform: translateY(-3px); box-shadow: 0 12px 28px rgba(79,110,247,.18); }
 
   /* Callout */
   .callout {
@@ -445,9 +447,22 @@ val, obj, cost, ticks = algo.bt.cost_tick(state, 0, 0)  # 执行行为树</pre>
       </div>
     </section>
 
+    <!-- 相关项目 -->
+    <section id="related">
+      <h2 class="section-title"><span class="num">9</span>相关项目</h2>
+      <p class="section-sub">原作者团队基于 OBTEA 的后续工作。</p>
+      <a class="cite-card related-card" href="https://github.com/DIDS-EI/LLM-OBTEA" target="_blank">
+        <div class="cite-title">LLM-OBTEA</div>
+        <div class="cite-authors">DIDS-EI · 将大语言模型与行为树扩展算法（OBTEA）结合</div>
+        <div class="cite-meta">
+          <span class="pill link">🔗 github.com/DIDS-EI/LLM-OBTEA</span>
+        </div>
+      </a>
+    </section>
+
     <!-- 版权 -->
     <section id="license">
-      <h2 class="section-title"><span class="num">9</span>版权与许可</h2>
+      <h2 class="section-title"><span class="num">10</span>版权与许可</h2>
       <p class="section-sub">尊重原作者版权，遵循引用要求。</p>
       <div class="callout">
         <span class="ci">©</span>
