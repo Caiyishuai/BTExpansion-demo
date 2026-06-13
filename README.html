@@ -183,6 +183,18 @@
   .module ul { margin: 10px 0 0; padding-left: 20px; color: var(--text-soft); font-size: 14.5px; }
   .module ul li { margin-bottom: 4px; }
 
+  /* Citation card */
+  .cite-card {
+    background: linear-gradient(135deg, var(--primary-soft) 0%, var(--accent-soft) 100%);
+    border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 24px 26px; box-shadow: var(--shadow);
+  }
+  .cite-title { font-size: 18px; font-weight: 800; color: var(--text); line-height: 1.5; }
+  .cite-authors { margin-top: 8px; color: var(--text-soft); font-size: 15px; }
+  .cite-meta { margin-top: 16px; display: flex; gap: 10px; flex-wrap: wrap; }
+  .cite-meta .pill { background: var(--card); }
+  .cite-meta .pill.link { color: var(--primary); }
+
   /* Callout */
   .callout {
     display: flex; gap: 12px; align-items: flex-start;
@@ -404,8 +416,51 @@ val, obj, cost, ticks = algo.bt.cost_tick(state, 0, 0)  # 执行行为树</pre>
       </table>
     </section>
 
+    <!-- 引用 -->
+    <section id="citation">
+      <h2 class="section-title"><span class="num">8</span>引用</h2>
+      <p class="section-sub">本项目实现的算法源自以下论文。如对你的研究有帮助，请引用。</p>
+      <div class="cite-card">
+        <div class="cite-title">BT Expansion: a Sound and Complete Algorithm for Behavior Planning of Intelligent Robots with Behavior Trees</div>
+        <div class="cite-authors">Zhongxuan Cai · Minglong Li · Wanrong Huang · Wenjing Yang</div>
+        <div class="cite-meta">
+          <span class="pill">AAAI 2021</span>
+          <span class="pill">Vol. 35, No. 7 · pp. 6058–6065</span>
+          <a class="pill link" href="https://doi.org/10.1609/aaai.v35i7.16755" target="_blank">🔗 DOI: 10.1609/aaai.v35i7.16755</a>
+        </div>
+      </div>
+      <div class="code-card" style="margin-top:16px;">
+        <div class="code-head"><span class="lights"><span class="r"></span><span class="y"></span><span class="g"></span></span>BibTeX</div>
+        <pre class="mono">@article{cai2021bt,
+  title     = {BT Expansion: a Sound and Complete Algorithm for Behavior
+               Planning of Intelligent Robots with Behavior Trees},
+  author    = {Cai, Zhongxuan and Li, Minglong and Huang, Wanrong and Yang, Wenjing},
+  journal   = {Proceedings of the AAAI Conference on Artificial Intelligence},
+  volume    = {35},
+  number    = {7},
+  pages     = {6058--6065},
+  year      = {2021},
+  doi       = {10.1609/aaai.v35i7.16755}
+}</pre>
+      </div>
+    </section>
+
+    <!-- 版权 -->
+    <section id="license">
+      <h2 class="section-title"><span class="num">9</span>版权与许可</h2>
+      <p class="section-sub">尊重原作者版权，遵循引用要求。</p>
+      <div class="callout">
+        <span class="ci">©</span>
+        <span>
+          算法版权归原论文作者所有：<strong>Zhongxuan Cai、Minglong Li、Wanrong Huang、Wenjing Yang</strong>
+          （National University of Defense Technology / National Innovation Institute of Defense Technology）。
+          本仓库为该算法的学习与研究性复现，<strong>仅用于学习与研究目的，不得用于任何商业用途</strong>；使用本项目代码或思想时，请遵循上述引用要求。
+        </span>
+      </div>
+    </section>
+
     <footer>
-      <p>BT_Expansion · 仅用于学习与研究目的</p>
+      <p>BT_Expansion · 基于 AAAI 2021 论文的学习与研究性复现，仅用于学习与研究目的</p>
       <p><a href="https://github.com/Caiyishuai/BTExpansion-demo" target="_blank">github.com/Caiyishuai/BTExpansion-demo</a></p>
     </footer>
 

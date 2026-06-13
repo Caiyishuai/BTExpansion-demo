@@ -142,6 +142,31 @@ def MoveBtoB():
 
 ---
 
-## 许可证
+## 引用
 
-本项目仅用于学习与研究目的。
+本项目实现的行为树扩展算法源自以下论文。如果本项目对你的研究有帮助，请引用：
+
+> Cai, Z., Li, M., Huang, W., & Yang, W. (2021). **BT Expansion: a Sound and Complete Algorithm for Behavior Planning of Intelligent Robots with Behavior Trees**. *Proceedings of the AAAI Conference on Artificial Intelligence*, *35*(7), 6058–6065. https://doi.org/10.1609/aaai.v35i7.16755
+
+BibTeX：
+
+```bibtex
+@article{cai2021bt,
+  title     = {BT Expansion: a Sound and Complete Algorithm for Behavior Planning of Intelligent Robots with Behavior Trees},
+  author    = {Cai, Zhongxuan and Li, Minglong and Huang, Wanrong and Yang, Wenjing},
+  journal   = {Proceedings of the AAAI Conference on Artificial Intelligence},
+  volume    = {35},
+  number    = {7},
+  pages     = {6058--6065},
+  year      = {2021},
+  doi       = {10.1609/aaai.v35i7.16755}
+}
+```
+
+---
+
+## 版权与许可
+
+- 算法版权归原论文作者所有：Zhongxuan Cai、Minglong Li、Wanrong Huang、Wenjing Yang（National University of Defense Technology / National Innovation Institute of Defense Technology）。
+- 本仓库为该算法的学习与研究性复现，仅用于**学习与研究目的**，不得用于任何商业用途。
+- 使用本项目代码或思想时，请遵循上述引用要求并尊重原作者版权。
