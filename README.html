@@ -1,136 +1,279 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>BT_Expansion · 行为树扩展算法演示</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BT_Expansion · 行为树扩展算法</title>
 <style>
   :root {
-    --bg: #0d1117;
-    --bg-soft: #161b22;
-    --border: #30363d;
-    --text: #c9d1d9;
-    --text-dim: #8b949e;
-    --accent: #58a6ff;
-    --accent-2: #3fb950;
-    --code-bg: #1b2230;
-    --kw: #ff7b72;
+    --bg: #f7f9fc;
+    --bg-soft: #eef2f8;
+    --card: #ffffff;
+    --text: #1f2937;
+    --text-soft: #5b6573;
+    --muted: #8a94a6;
+    --border: #e4e9f2;
+    --primary: #4f6ef7;
+    --primary-soft: #eaf0ff;
+    --accent: #12b8a6;
+    --accent-soft: #e3faf6;
+    --amber: #f59e0b;
+    --amber-soft: #fff4e0;
+    --code-bg: #f4f6fb;
+    --code-text: #2d3340;
+    --shadow: 0 4px 20px rgba(31, 45, 80, 0.06);
+    --shadow-hover: 0 10px 32px rgba(31, 45, 80, 0.12);
+    --radius: 16px;
   }
   * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
   body {
     margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+      "Hiragino Sans GB", "Microsoft YaHei", Roboto, Helvetica, Arial, sans-serif;
     background: var(--bg);
     color: var(--text);
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
-      "Hiragino Sans GB", "Microsoft YaHei", Helvetica, Arial, sans-serif;
-    line-height: 1.7;
+    line-height: 1.75;
     font-size: 16px;
   }
-  .wrap { max-width: 920px; margin: 0 auto; padding: 48px 24px 96px; }
-  header {
-    text-align: center;
-    padding: 40px 0 28px;
-    border-bottom: 1px solid var(--border);
-    margin-bottom: 36px;
-  }
-  header h1 {
-    font-size: 2.6rem;
-    margin: 0 0 8px;
-    background: linear-gradient(90deg, #58a6ff, #3fb950);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-  }
-  header p { color: var(--text-dim); margin: 0; font-size: 1.05rem; }
-  .badges { margin-top: 16px; display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
-  .badge {
-    font-size: 0.78rem; padding: 3px 10px; border-radius: 20px;
-    background: var(--bg-soft); border: 1px solid var(--border); color: var(--text-dim);
-  }
-  h2 {
-    font-size: 1.5rem; margin: 44px 0 16px; padding-bottom: 8px;
-    border-bottom: 1px solid var(--border);
-  }
-  h2 .ico { color: var(--accent); margin-right: 8px; }
-  h3 { font-size: 1.15rem; margin: 26px 0 10px; color: #e6edf3; }
-  p, li { color: var(--text); }
-  a { color: var(--accent); text-decoration: none; }
+  a { color: var(--primary); text-decoration: none; }
   a:hover { text-decoration: underline; }
-  code {
-    background: var(--code-bg); padding: 2px 6px; border-radius: 5px;
-    font-family: "SF Mono", "JetBrains Mono", Consolas, monospace; font-size: 0.88em;
-    color: #e6edf3;
+  code, pre, .mono { font-family: "JetBrains Mono", "Fira Code", "SF Mono", Consolas, Menlo, monospace; }
+
+  /* Layout */
+  .wrap { max-width: 980px; margin: 0 auto; padding: 0 24px 80px; }
+
+  /* Hero */
+  .hero {
+    background: linear-gradient(135deg, #eef3ff 0%, #f3fbf9 55%, #fef6ec 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 72px 24px 60px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
   }
-  pre {
-    background: var(--code-bg); border: 1px solid var(--border); border-radius: 10px;
-    padding: 16px 18px; overflow-x: auto; font-size: 0.86rem; line-height: 1.55;
+  .hero::after {
+    content: "";
+    position: absolute; inset: 0;
+    background-image: radial-gradient(circle at 20% 30%, rgba(79,110,247,.10), transparent 40%),
+                      radial-gradient(circle at 80% 20%, rgba(18,184,166,.10), transparent 40%);
+    pointer-events: none;
   }
-  pre code { background: none; padding: 0; color: #c9d1d9; }
-  .features { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
+  .hero-inner { max-width: 760px; margin: 0 auto; position: relative; z-index: 1; }
+  .logo-badge {
+    display: inline-flex; align-items: center; gap: 10px;
+    background: var(--card); border: 1px solid var(--border);
+    padding: 8px 18px; border-radius: 999px; font-weight: 600;
+    color: var(--primary); box-shadow: var(--shadow); margin-bottom: 22px;
+    font-size: 14px;
+  }
+  .logo-badge .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--accent); }
+  .hero h1 {
+    font-size: 52px; margin: 0 0 16px; letter-spacing: -1px; font-weight: 800;
+    background: linear-gradient(120deg, #3a56e0, #12b8a6);
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .hero p { font-size: 19px; color: var(--text-soft); margin: 0 auto 28px; max-width: 600px; }
+  .badges { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+  .pill {
+    display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600;
+    padding: 6px 14px; border-radius: 999px; background: var(--card);
+    border: 1px solid var(--border); color: var(--text-soft); box-shadow: var(--shadow);
+  }
+
+  /* Sections */
+  section { margin-top: 56px; }
+  .section-title {
+    display: flex; align-items: center; gap: 12px;
+    font-size: 26px; font-weight: 800; margin: 0 0 8px; letter-spacing: -.3px;
+  }
+  .section-title .num {
+    flex: none; width: 34px; height: 34px; border-radius: 10px;
+    background: var(--primary-soft); color: var(--primary);
+    display: grid; place-items: center; font-size: 16px; font-weight: 800;
+  }
+  .section-sub { color: var(--muted); margin: 0 0 24px; font-size: 15px; }
+
+  /* Feature cards */
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 18px; }
   .card {
-    background: var(--bg-soft); border: 1px solid var(--border); border-radius: 12px;
-    padding: 18px 20px; transition: border-color .2s, transform .2s;
+    background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 24px; box-shadow: var(--shadow); transition: transform .2s ease, box-shadow .2s ease;
   }
-  .card:hover { border-color: var(--accent); transform: translateY(-2px); }
-  .card h4 { margin: 0 0 6px; color: #e6edf3; font-size: 1rem; }
-  .card p { margin: 0; color: var(--text-dim); font-size: 0.9rem; }
-  table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 0.9rem; }
-  th, td { border: 1px solid var(--border); padding: 10px 14px; text-align: left; }
-  th { background: var(--bg-soft); color: #e6edf3; }
-  ol li { margin: 6px 0; }
-  .note {
-    background: rgba(88,166,255,.08); border-left: 3px solid var(--accent);
-    padding: 12px 16px; border-radius: 0 8px 8px 0; margin: 16px 0; color: var(--text-dim);
+  .card:hover { transform: translateY(-4px); box-shadow: var(--shadow-hover); }
+  .card .ico {
+    width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center;
+    font-size: 22px; margin-bottom: 14px;
   }
-  footer { margin-top: 60px; text-align: center; color: var(--text-dim); font-size: 0.85rem; border-top: 1px solid var(--border); padding-top: 24px; }
+  .card h3 { margin: 0 0 6px; font-size: 17px; }
+  .card p { margin: 0; color: var(--text-soft); font-size: 14.5px; line-height: 1.65; }
+  .ico.blue { background: var(--primary-soft); }
+  .ico.teal { background: var(--accent-soft); }
+  .ico.amber { background: var(--amber-soft); }
+
+  /* Code blocks */
+  pre {
+    background: var(--code-bg); border: 1px solid var(--border); border-radius: 12px;
+    padding: 18px 20px; overflow-x: auto; font-size: 14px; line-height: 1.7; color: var(--code-text);
+    margin: 0;
+  }
+  pre.tree { line-height: 1.5; }
+  p code, li code, td code {
+    background: var(--code-bg); border: 1px solid var(--border); border-radius: 6px;
+    padding: 1px 7px; font-size: 13.5px; color: #c0392b;
+  }
+  .code-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+    box-shadow: var(--shadow); overflow: hidden;
+  }
+  .code-head {
+    display: flex; align-items: center; gap: 8px; padding: 12px 18px;
+    background: var(--bg-soft); border-bottom: 1px solid var(--border);
+    font-size: 13px; color: var(--muted); font-weight: 600;
+  }
+  .code-head .lights { display: flex; gap: 6px; margin-right: 6px; }
+  .code-head .lights span { width: 11px; height: 11px; border-radius: 50%; }
+  .code-head .lights .r { background: #ff5f57; }
+  .code-head .lights .y { background: #febc2e; }
+  .code-head .lights .g { background: #28c840; }
+  .code-card pre { border: none; border-radius: 0; }
+
+  /* Steps */
+  .steps { list-style: none; padding: 0; margin: 0; counter-reset: step; }
+  .steps li {
+    position: relative; padding: 14px 18px 14px 56px; margin-bottom: 12px;
+    background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+    box-shadow: var(--shadow); color: var(--text-soft); font-size: 15px;
+  }
+  .steps li::before {
+    counter-increment: step; content: counter(step);
+    position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+    width: 28px; height: 28px; border-radius: 50%; background: var(--primary); color: #fff;
+    display: grid; place-items: center; font-weight: 700; font-size: 14px;
+  }
+
+  /* Image figure */
+  figure { margin: 0; }
+  .figure-box {
+    background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 22px; box-shadow: var(--shadow); text-align: center;
+  }
+  .figure-box img { max-width: 100%; height: auto; border-radius: 8px; }
+  figcaption { margin-top: 14px; color: var(--muted); font-size: 13.5px; }
+
+  /* Table */
+  table { width: 100%; border-collapse: collapse; background: var(--card);
+    border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); }
+  th, td { padding: 13px 18px; text-align: left; border-bottom: 1px solid var(--border); font-size: 15px; }
+  th { background: var(--bg-soft); color: var(--text); font-weight: 700; }
+  tr:last-child td { border-bottom: none; }
+  tbody tr:hover { background: var(--primary-soft); }
+
+  /* Module list */
+  .module {
+    background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 22px 24px; box-shadow: var(--shadow); margin-bottom: 16px;
+  }
+  .module h3 { margin: 0 0 4px; font-size: 17px; display: flex; align-items: center; gap: 8px; }
+  .module h3 .tag {
+    font-size: 12px; font-weight: 600; color: var(--accent); background: var(--accent-soft);
+    padding: 2px 10px; border-radius: 999px;
+  }
+  .module p { margin: 8px 0 0; color: var(--text-soft); font-size: 14.5px; }
+  .module ul { margin: 10px 0 0; padding-left: 20px; color: var(--text-soft); font-size: 14.5px; }
+  .module ul li { margin-bottom: 4px; }
+
+  /* Callout */
+  .callout {
+    display: flex; gap: 12px; align-items: flex-start;
+    background: var(--amber-soft); border: 1px solid #f6dca6; border-radius: 12px;
+    padding: 14px 18px; color: #7a5a16; font-size: 14.5px; margin-top: 16px;
+  }
+  .callout .ci { font-size: 18px; line-height: 1.4; }
+
+  /* Footer */
+  footer {
+    margin-top: 64px; padding-top: 28px; border-top: 1px solid var(--border);
+    text-align: center; color: var(--muted); font-size: 14px;
+  }
+  footer a { font-weight: 600; }
+
+  @media (max-width: 600px) {
+    .hero h1 { font-size: 38px; }
+    .hero { padding: 56px 18px 44px; }
+  }
 </style>
 </head>
 <body>
-<div class="wrap">
-  <header>
-    <h1>BT_Expansion</h1>
-    <p>行为树扩展算法（Behavior Tree Expansion）演示项目</p>
-    <div class="badges">
-      <span class="badge">Python 3.8+</span>
-      <span class="badge">Behavior Tree</span>
-      <span class="badge">Task Planning</span>
-      <span class="badge">PTML</span>
+
+  <header class="hero">
+    <div class="hero-inner">
+      <span class="logo-badge"><span class="dot"></span>Behavior Tree Expansion</span>
+      <h1>BT_Expansion</h1>
+      <p>一套行为树扩展算法的演示项目 —— 给定初始状态、目标状态与动作集合，自动生成可靠抵达目标的<strong>行为树</strong>，支持执行、可视化与 PTML 导出。</p>
+      <div class="badges">
+        <span class="pill">🐍 Python 3.8+</span>
+        <span class="pill">🌲 Behavior Tree</span>
+        <span class="pill">📊 Graphviz 可视化</span>
+        <span class="pill">📝 PTML 导出</span>
+      </div>
     </div>
   </header>
 
-  <p>
-    本项目实现并演示了一种 <strong>行为树扩展算法</strong>：给定规划问题的初始状态
-    <code>start</code>、目标状态 <code>goal</code> 以及可用动作集合 <code>actions</code>，
-    算法会自动扩展生成一棵能够从初始状态可靠到达目标状态的
-    <strong>行为树（Behavior Tree）</strong>，并支持执行、可视化与 PTML 文本导出。
-  </p>
+  <div class="wrap">
 
-  <h2><span class="ico">✦</span>功能特性</h2>
-  <div class="features">
-    <div class="card">
-      <h4>行为树扩展算法</h4>
-      <p>从目标条件反向扩展动作子树，直至行为树可在初始状态成功运行。</p>
-    </div>
-    <div class="card">
-      <h4>行为树执行</h4>
-      <p>基于 tick 机制驱动行为树运行，统计执行代价与 tick 次数。</p>
-    </div>
-    <div class="card">
-      <h4>PTML 导出</h4>
-      <p>将行为树序列化为 .ptml 文本，统一输出到 output/ 目录。</p>
-    </div>
-    <div class="card">
-      <h4>可视化</h4>
-      <p>借助 Graphviz 将 .ptml 渲染为树状图（PDF / 图片）。</p>
-    </div>
-    <div class="card">
-      <h4>鲁棒性测试</h4>
-      <p>随机生成规划问题集，批量验证算法正确性与性能。</p>
-    </div>
-  </div>
+    <!-- 功能特性 -->
+    <section id="features">
+      <h2 class="section-title"><span class="num">1</span>功能特性</h2>
+      <p class="section-sub">从规划问题到可执行行为树的一站式能力。</p>
+      <div class="grid">
+        <div class="card">
+          <div class="ico blue">🌳</div>
+          <h3>行为树扩展算法</h3>
+          <p>从目标条件出发，反向扩展动作子树，直至行为树可在初始状态成功运行。</p>
+        </div>
+        <div class="card">
+          <div class="ico teal">⚙️</div>
+          <h3>行为树执行</h3>
+          <p>基于 <code>tick</code> 机制驱动运行，并统计执行代价（cost）与 tick 次数。</p>
+        </div>
+        <div class="card">
+          <div class="ico amber">📝</div>
+          <h3>PTML 导出</h3>
+          <p>将生成的行为树序列化为 <code>.ptml</code> 文本，统一输出到 <code>output/</code> 目录。</p>
+        </div>
+        <div class="card">
+          <div class="ico blue">🖼️</div>
+          <h3>可视化</h3>
+          <p>通过 Graphviz 将 <code>.ptml</code> 渲染为树状图（PDF / 图片）。</p>
+        </div>
+        <div class="card">
+          <div class="ico teal">🧪</div>
+          <h3>鲁棒性测试</h3>
+          <p>随机生成规划问题集，批量验证算法的正确性与性能表现。</p>
+        </div>
+      </div>
+    </section>
 
-  <h2><span class="ico">▤</span>目录结构</h2>
-  <pre><code>BT_Expansion/
+    <!-- 算法原理 -->
+    <section id="algorithm">
+      <h2 class="section-title"><span class="num">2</span>算法原理</h2>
+      <p class="section-sub">核心思想：以目标条件为根，按最短路径距离顺序扩展条件与动作，构造最优行为树（OBTEA）。</p>
+      <figure>
+        <div class="figure-box">
+          <img src="README.assets/image-20231103191141047.png" alt="Optimal Behavior Tree Expansion Algorithm 伪代码">
+          <figcaption>图 1 · Optimal Behavior Tree Expansion Algorithm（OBTEA）核心伪代码：维护已探索/未扩展条件集合，按 <em>D(c)</em> 最短路径距离贪心扩展。</figcaption>
+        </div>
+      </figure>
+    </section>
+
+    <!-- 目录结构 -->
+    <section id="structure">
+      <h2 class="section-title"><span class="num">3</span>目录结构</h2>
+      <p class="section-sub">源码、脚本与产物清晰分层，便于维护与扩展。</p>
+      <div class="code-card">
+        <div class="code-head"><span class="lights"><span class="r"></span><span class="y"></span><span class="g"></span></span>BT_Expansion/</div>
+        <pre class="tree mono">BT_Expansion/
 ├── main.py                     # 演示入口：规划 → 生成行为树 → 执行 → 导出 PTML
 ├── requirements.txt            # 依赖清单
 ├── output/                     # 所有生成产物（.ptml / 渲染图等）
@@ -147,34 +290,57 @@
 │   └── utils/                  # 加载、绘制等工具
 └── scripts/                    # 独立脚本
     ├── visualize_ptml.py       # 读取 output/ 中的 .ptml 并渲染为树图
-    └── benchmark.py            # 批量随机测试（鲁棒性 / 性能基准）</code></pre>
+    └── benchmark.py            # 批量随机测试（鲁棒性 / 性能基准）</pre>
+      </div>
+    </section>
 
-  <h2><span class="ico">⚙</span>环境依赖与安装</h2>
-  <p>要求 Python 3.8+。安装依赖：</p>
-  <pre><code>pip install -r requirements.txt</code></pre>
-  <div class="note">
-    行为树可视化依赖系统 Graphviz：macOS 执行 <code>brew install graphviz</code>，
-    Ubuntu 执行 <code>sudo apt-get install graphviz</code>。
-  </div>
+    <!-- 安装 -->
+    <section id="install">
+      <h2 class="section-title"><span class="num">4</span>环境依赖与安装</h2>
+      <p class="section-sub">要求 Python 3.8+。</p>
+      <div class="code-card">
+        <div class="code-head"><span class="lights"><span class="r"></span><span class="y"></span><span class="g"></span></span>bash</div>
+        <pre class="mono">pip install -r requirements.txt</pre>
+      </div>
+      <div class="callout">
+        <span class="ci">💡</span>
+        <span>行为树可视化依赖系统 <strong>Graphviz</strong>：macOS 执行 <code>brew install graphviz</code>，Ubuntu 执行 <code>sudo apt-get install graphviz</code>。</span>
+      </div>
+    </section>
 
-  <h2><span class="ico">▶</span>快速开始</h2>
-  <pre><code>python main.py</code></pre>
-  <p>程序将依次完成：</p>
-  <ol>
-    <li>加载规划问题（默认示例 <code>MoveBtoB</code>）并打印动作 / 状态表；</li>
-    <li>运行行为树扩展算法生成行为树；</li>
-    <li>打印行为树结构，并将其导出为 <code>output/MoveBtoB.ptml</code>；</li>
-    <li>执行行为树，输出求解步骤、节点数、代价与 tick 次数。</li>
-  </ol>
-  <p>可视化生成的行为树，以及运行鲁棒性 / 性能测试：</p>
-  <pre><code>python scripts/visualize_ptml.py   # 输出 output/ptml_tree.pdf
-python scripts/benchmark.py        # 批量随机测试</code></pre>
+    <!-- 快速开始 -->
+    <section id="quickstart">
+      <h2 class="section-title"><span class="num">5</span>快速开始</h2>
+      <p class="section-sub">一行命令跑通完整流程。</p>
+      <div class="code-card">
+        <div class="code-head"><span class="lights"><span class="r"></span><span class="y"></span><span class="g"></span></span>bash</div>
+        <pre class="mono">python main.py</pre>
+      </div>
+      <p style="margin:20px 0 14px; color:var(--text-soft);">程序将依次完成：</p>
+      <ol class="steps">
+        <li>加载规划问题（默认示例 <code>MoveBtoB</code>）并打印动作 / 状态表；</li>
+        <li>运行行为树扩展算法生成行为树；</li>
+        <li>打印行为树结构，并将其导出为 <code>output/MoveBtoB.ptml</code>；</li>
+        <li>执行行为树，输出求解步骤、节点数、代价与 tick 次数。</li>
+      </ol>
+      <div class="code-card" style="margin-top:18px;">
+        <div class="code-head"><span class="lights"><span class="r"></span><span class="y"></span><span class="g"></span></span>可视化 & 测试</div>
+        <pre class="mono">python scripts/visualize_ptml.py   # 输出 output/ptml_tree.pdf
+python scripts/benchmark.py        # 批量随机测试（鲁棒性 / 性能基准）</pre>
+      </div>
+    </section>
 
-  <h2><span class="ico">◈</span>核心模块说明</h2>
+    <!-- 核心模块 -->
+    <section id="modules">
+      <h2 class="section-title"><span class="num">6</span>核心模块说明</h2>
+      <p class="section-sub">各模块职责一目了然。</p>
 
-  <h3>src/bt_expansion/algorithm.py —— 行为树扩展算法</h3>
-  <p>核心类 <code>BTExpAlgorithm</code>，典型用法：</p>
-  <pre><code>from bt_expansion.algorithm import BTExpAlgorithm, state_transition
+      <div class="module">
+        <h3>algorithm.py <span class="tag">行为树扩展算法</span></h3>
+        <p>核心类 <code>BTExpAlgorithm</code>，典型用法：</p>
+        <div class="code-card" style="margin-top:12px;">
+          <div class="code-head"><span class="lights"><span class="r"></span><span class="y"></span><span class="g"></span></span>python</div>
+          <pre class="mono">from bt_expansion.algorithm import BTExpAlgorithm, state_transition
 
 algo = BTExpAlgorithm(verbose=True)
 algo.clear()
@@ -182,38 +348,67 @@ algo.run_algorithm(start, goal, actions)   # 生成行为树，保存在 algo.bt
 algo.print_solution()                       # 打印行为树
 ptml = algo.save_ptml_file("MoveBtoB")     # 导出 PTML 至 output/
 
-val, obj, cost, ticks = algo.bt.cost_tick(state, 0, 0)  # 执行行为树</code></pre>
+val, obj, cost, ticks = algo.bt.cost_tick(state, 0, 0)  # 执行行为树</pre>
+        </div>
+      </div>
 
-  <h3>src/bt_expansion/planning.py —— 规划基础</h3>
-  <ul>
-    <li><code>Action</code>：动作类，含前提 <code>pre</code>、增加效果 <code>add</code>、删除效果 <code>del_set</code> 与代价 <code>cost</code>。</li>
-    <li><code>state_transition(state, action)</code>：根据动作计算后继状态。</li>
-    <li><code>print_action_data_table(goal, start, actions)</code>：以表格打印规划问题。</li>
-  </ul>
+      <div class="module">
+        <h3>planning.py <span class="tag">规划基础</span></h3>
+        <ul>
+          <li><code>Action</code>：动作类，包含前提 <code>pre</code>、增加效果 <code>add</code>、删除效果 <code>del_set</code> 与代价 <code>cost</code>。</li>
+          <li><code>state_transition(state, action)</code>：根据动作计算后继状态。</li>
+          <li><code>print_action_data_table(goal, start, actions)</code>：以表格形式打印规划问题。</li>
+        </ul>
+      </div>
 
-  <h3>src/bt_expansion/examples.py —— 示例问题集</h3>
-  <p>内置 <code>MoveBtoB</code>、<code>MakeCoffee</code>、<code>SoftdrinkCost</code>、<code>Test</code> 等多个规划问题，每个函数返回 <code>(goal, start, actions)</code>。</p>
+      <div class="module">
+        <h3>examples.py <span class="tag">示例问题集</span></h3>
+        <p>内置 <code>MoveBtoB</code>、<code>MakeCoffee</code>、<code>SoftdrinkCost</code>、<code>Test</code> 等多个规划问题，每个函数返回 <code>(goal, start, actions)</code>。示例 <code>MoveBtoB</code>：</p>
+        <div class="code-card" style="margin-top:12px;">
+          <div class="code-head"><span class="lights"><span class="r"></span><span class="y"></span><span class="g"></span></span>python</div>
+          <pre class="mono">def MoveBtoB():
+    actions = []
+    a = Action(name="Move(b,ab)")
+    a.pre = {'Free(ab)', 'WayClear'}
+    a.add = {'At(b,ab)'}
+    a.del_set = {'Free(ab)', 'At(b,pb)'}
+    a.cost = 1
+    actions.append(a)
+    # ... 其余动作
+    start = {'Free(ab)', 'Free(as)', 'At(b,pb)', 'At(s,ps)'}
+    goal = {'At(b,ab)'}
+    return goal, start, actions</pre>
+        </div>
+      </div>
 
-  <h3>src/behavior_tree/ —— 行为树与 PTML</h3>
-  <ul>
-    <li><code>BehaviorTree.py</code>：定义叶节点 <code>Leaf</code>（动作 / 条件）与控制节点 <code>ControlBT</code>（选择器 <code>?</code> / 序列 <code>&gt;</code>），均实现 <code>tick</code> 方法。</li>
-    <li><code>ptml/</code>：PTML 语法（ANTLR4 生成）及编译器。</li>
-  </ul>
+      <div class="module">
+        <h3>behavior_tree/ <span class="tag">行为树与 PTML</span></h3>
+        <ul>
+          <li><code>BehaviorTree.py</code>：定义叶节点 <code>Leaf</code>（动作 <code>act</code> / 条件 <code>cond</code>）与控制节点 <code>ControlBT</code>（选择器 <code>?</code> / 序列 <code>&gt;</code>），均实现 <code>tick</code> 方法。</li>
+          <li><code>ptml/</code>：PTML 语法（ANTLR4 生成的词法 / 语法分析器）及编译器。</li>
+        </ul>
+      </div>
+    </section>
 
-  <h2><span class="ico">⤓</span>输出产物</h2>
-  <p>所有运行时生成的文件统一写入 <code>output/</code> 目录：</p>
-  <table>
-    <thead><tr><th>文件</th><th>说明</th></tr></thead>
-    <tbody>
-      <tr><td><code>*.ptml</code></td><td>行为树的 PTML 文本表示</td></tr>
-      <tr><td><code>ptml_tree</code></td><td>Graphviz DOT 源文件</td></tr>
-      <tr><td><code>ptml_tree.pdf</code></td><td>行为树渲染图</td></tr>
-    </tbody>
-  </table>
+    <!-- 输出产物 -->
+    <section id="output">
+      <h2 class="section-title"><span class="num">7</span>输出产物</h2>
+      <p class="section-sub">所有运行时生成的文件统一写入 <code>output/</code> 目录。</p>
+      <table>
+        <thead><tr><th>文件</th><th>说明</th></tr></thead>
+        <tbody>
+          <tr><td><code>*.ptml</code></td><td>行为树的 PTML 文本表示</td></tr>
+          <tr><td><code>ptml_tree</code></td><td>Graphviz DOT 源文件</td></tr>
+          <tr><td><code>ptml_tree.pdf</code></td><td>行为树渲染图</td></tr>
+        </tbody>
+      </table>
+    </section>
 
-  <footer>
-    BT_Expansion · 仅用于学习与研究目的
-  </footer>
-</div>
+    <footer>
+      <p>BT_Expansion · 仅用于学习与研究目的</p>
+      <p><a href="https://github.com/Caiyishuai/BTExpansion-demo" target="_blank">github.com/Caiyishuai/BTExpansion-demo</a></p>
+    </footer>
+
+  </div>
 </body>
 </html>
