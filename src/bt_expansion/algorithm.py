@@ -1,8 +1,9 @@
 import copy
-
-from behavior_tree.BehaviorTree import ControlBT,Leaf
-from tools import Action,state_transition,conflict
+import os
 import re
+
+from behavior_tree.BehaviorTree import ControlBT, Leaf
+from bt_expansion.planning import Action, state_transition, conflict
 
 
 
@@ -291,11 +292,17 @@ class BTExpAlgorithm:
                     self.dfs_ptml( parnode=child)
                 self.ptml_string += '}\n'
 
-    def save_ptml_file(self,file_name):
+    def save_ptml_file(self, file_name, output_dir=None):
         self.ptml_string = "selector{\n"
         self.dfs_ptml(self.bt.children[0])
         self.ptml_string += '}\n'
-        with open(f'./{file_name}.ptml', 'w') as file:
+        # 默认输出到项目根目录下的 output/ 文件夹
+        if output_dir is None:
+            project_root = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+            output_dir = os.path.join(project_root, "output")
+        os.makedirs(output_dir, exist_ok=True)
+        file_path = os.path.join(output_dir, f"{file_name}.ptml")
+        with open(file_path, 'w') as file:
             file.write(self.ptml_string)
         return self.ptml_string
 

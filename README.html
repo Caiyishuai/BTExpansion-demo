@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>BT_Expansion · 行为树扩展算法演示</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --bg-soft: #161b22;
+    --border: #30363d;
+    --text: #c9d1d9;
+    --text-dim: #8b949e;
+    --accent: #58a6ff;
+    --accent-2: #3fb950;
+    --code-bg: #1b2230;
+    --kw: #ff7b72;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+      "Hiragino Sans GB", "Microsoft YaHei", Helvetica, Arial, sans-serif;
+    line-height: 1.7;
+    font-size: 16px;
+  }
+  .wrap { max-width: 920px; margin: 0 auto; padding: 48px 24px 96px; }
+  header {
+    text-align: center;
+    padding: 40px 0 28px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 36px;
+  }
+  header h1 {
+    font-size: 2.6rem;
+    margin: 0 0 8px;
+    background: linear-gradient(90deg, #58a6ff, #3fb950);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  header p { color: var(--text-dim); margin: 0; font-size: 1.05rem; }
+  .badges { margin-top: 16px; display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+  .badge {
+    font-size: 0.78rem; padding: 3px 10px; border-radius: 20px;
+    background: var(--bg-soft); border: 1px solid var(--border); color: var(--text-dim);
+  }
+  h2 {
+    font-size: 1.5rem; margin: 44px 0 16px; padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+  h2 .ico { color: var(--accent); margin-right: 8px; }
+  h3 { font-size: 1.15rem; margin: 26px 0 10px; color: #e6edf3; }
+  p, li { color: var(--text); }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code {
+    background: var(--code-bg); padding: 2px 6px; border-radius: 5px;
+    font-family: "SF Mono", "JetBrains Mono", Consolas, monospace; font-size: 0.88em;
+    color: #e6edf3;
+  }
+  pre {
+    background: var(--code-bg); border: 1px solid var(--border); border-radius: 10px;
+    padding: 16px 18px; overflow-x: auto; font-size: 0.86rem; line-height: 1.55;
+  }
+  pre code { background: none; padding: 0; color: #c9d1d9; }
+  .features { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
+  .card {
+    background: var(--bg-soft); border: 1px solid var(--border); border-radius: 12px;
+    padding: 18px 20px; transition: border-color .2s, transform .2s;
+  }
+  .card:hover { border-color: var(--accent); transform: translateY(-2px); }
+  .card h4 { margin: 0 0 6px; color: #e6edf3; font-size: 1rem; }
+  .card p { margin: 0; color: var(--text-dim); font-size: 0.9rem; }
+  table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 0.9rem; }
+  th, td { border: 1px solid var(--border); padding: 10px 14px; text-align: left; }
+  th { background: var(--bg-soft); color: #e6edf3; }
+  ol li { margin: 6px 0; }
+  .note {
+    background: rgba(88,166,255,.08); border-left: 3px solid var(--accent);
+    padding: 12px 16px; border-radius: 0 8px 8px 0; margin: 16px 0; color: var(--text-dim);
+  }
+  footer { margin-top: 60px; text-align: center; color: var(--text-dim); font-size: 0.85rem; border-top: 1px solid var(--border); padding-top: 24px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>BT_Expansion</h1>
+    <p>行为树扩展算法（Behavior Tree Expansion）演示项目</p>
+    <div class="badges">
+      <span class="badge">Python 3.8+</span>
+      <span class="badge">Behavior Tree</span>
+      <span class="badge">Task Planning</span>
+      <span class="badge">PTML</span>
+    </div>
+  </header>
+
+  <p>
+    本项目实现并演示了一种 <strong>行为树扩展算法</strong>：给定规划问题的初始状态
+    <code>start</code>、目标状态 <code>goal</code> 以及可用动作集合 <code>actions</code>，
+    算法会自动扩展生成一棵能够从初始状态可靠到达目标状态的
+    <strong>行为树（Behavior Tree）</strong>，并支持执行、可视化与 PTML 文本导出。
+  </p>
+
+  <h2><span class="ico">✦</span>功能特性</h2>
+  <div class="features">
+    <div class="card">
+      <h4>行为树扩展算法</h4>
+      <p>从目标条件反向扩展动作子树，直至行为树可在初始状态成功运行。</p>
+    </div>
+    <div class="card">
+      <h4>行为树执行</h4>
+      <p>基于 tick 机制驱动行为树运行，统计执行代价与 tick 次数。</p>
+    </div>
+    <div class="card">
+      <h4>PTML 导出</h4>
+      <p>将行为树序列化为 .ptml 文本，统一输出到 output/ 目录。</p>
+    </div>
+    <div class="card">
+      <h4>可视化</h4>
+      <p>借助 Graphviz 将 .ptml 渲染为树状图（PDF / 图片）。</p>
+    </div>
+    <div class="card">
+      <h4>鲁棒性测试</h4>
+      <p>随机生成规划问题集，批量验证算法正确性与性能。</p>
+    </div>
+  </div>
+
+  <h2><span class="ico">▤</span>目录结构</h2>
+  <pre><code>BT_Expansion/
+├── main.py                     # 演示入口：规划 → 生成行为树 → 执行 → 导出 PTML
+├── requirements.txt            # 依赖清单
+├── output/                     # 所有生成产物（.ptml / 渲染图等）
+│   ├── MoveBtoB.ptml
+│   ├── ptml_tree               # Graphviz 源
+│   └── ptml_tree.pdf           # 渲染结果
+├── src/                        # 源代码
+│   ├── bt_expansion/           # 核心算法包
+│   │   ├── algorithm.py        # 行为树扩展算法（BTExpAlgorithm）
+│   │   ├── planning.py         # 规划基础：Action、状态转移、数据打印等
+│   │   └── examples.py         # 内置规划问题示例集
+│   ├── behavior_tree/          # 行为树节点定义与 PTML 编译器
+│   ├── behavior_lib/           # 行为节点库（Selector / Sequence / Inverter 等）
+│   └── utils/                  # 加载、绘制等工具
+└── scripts/                    # 独立脚本
+    ├── visualize_ptml.py       # 读取 output/ 中的 .ptml 并渲染为树图
+    └── benchmark.py            # 批量随机测试（鲁棒性 / 性能基准）</code></pre>
+
+  <h2><span class="ico">⚙</span>环境依赖与安装</h2>
+  <p>要求 Python 3.8+。安装依赖：</p>
+  <pre><code>pip install -r requirements.txt</code></pre>
+  <div class="note">
+    行为树可视化依赖系统 Graphviz：macOS 执行 <code>brew install graphviz</code>，
+    Ubuntu 执行 <code>sudo apt-get install graphviz</code>。
+  </div>
+
+  <h2><span class="ico">▶</span>快速开始</h2>
+  <pre><code>python main.py</code></pre>
+  <p>程序将依次完成：</p>
+  <ol>
+    <li>加载规划问题（默认示例 <code>MoveBtoB</code>）并打印动作 / 状态表；</li>
+    <li>运行行为树扩展算法生成行为树；</li>
+    <li>打印行为树结构，并将其导出为 <code>output/MoveBtoB.ptml</code>；</li>
+    <li>执行行为树，输出求解步骤、节点数、代价与 tick 次数。</li>
+  </ol>
+  <p>可视化生成的行为树，以及运行鲁棒性 / 性能测试：</p>
+  <pre><code>python scripts/visualize_ptml.py   # 输出 output/ptml_tree.pdf
+python scripts/benchmark.py        # 批量随机测试</code></pre>
+
+  <h2><span class="ico">◈</span>核心模块说明</h2>
+
+  <h3>src/bt_expansion/algorithm.py —— 行为树扩展算法</h3>
+  <p>核心类 <code>BTExpAlgorithm</code>，典型用法：</p>
+  <pre><code>from bt_expansion.algorithm import BTExpAlgorithm, state_transition
+
+algo = BTExpAlgorithm(verbose=True)
+algo.clear()
+algo.run_algorithm(start, goal, actions)   # 生成行为树，保存在 algo.bt
+algo.print_solution()                       # 打印行为树
+ptml = algo.save_ptml_file("MoveBtoB")     # 导出 PTML 至 output/
+
+val, obj, cost, ticks = algo.bt.cost_tick(state, 0, 0)  # 执行行为树</code></pre>
+
+  <h3>src/bt_expansion/planning.py —— 规划基础</h3>
+  <ul>
+    <li><code>Action</code>：动作类，含前提 <code>pre</code>、增加效果 <code>add</code>、删除效果 <code>del_set</code> 与代价 <code>cost</code>。</li>
+    <li><code>state_transition(state, action)</code>：根据动作计算后继状态。</li>
+    <li><code>print_action_data_table(goal, start, actions)</code>：以表格打印规划问题。</li>
+  </ul>
+
+  <h3>src/bt_expansion/examples.py —— 示例问题集</h3>
+  <p>内置 <code>MoveBtoB</code>、<code>MakeCoffee</code>、<code>SoftdrinkCost</code>、<code>Test</code> 等多个规划问题，每个函数返回 <code>(goal, start, actions)</code>。</p>
+
+  <h3>src/behavior_tree/ —— 行为树与 PTML</h3>
+  <ul>
+    <li><code>BehaviorTree.py</code>：定义叶节点 <code>Leaf</code>（动作 / 条件）与控制节点 <code>ControlBT</code>（选择器 <code>?</code> / 序列 <code>&gt;</code>），均实现 <code>tick</code> 方法。</li>
+    <li><code>ptml/</code>：PTML 语法（ANTLR4 生成）及编译器。</li>
+  </ul>
+
+  <h2><span class="ico">⤓</span>输出产物</h2>
+  <p>所有运行时生成的文件统一写入 <code>output/</code> 目录：</p>
+  <table>
+    <thead><tr><th>文件</th><th>说明</th></tr></thead>
+    <tbody>
+      <tr><td><code>*.ptml</code></td><td>行为树的 PTML 文本表示</td></tr>
+      <tr><td><code>ptml_tree</code></td><td>Graphviz DOT 源文件</td></tr>
+      <tr><td><code>ptml_tree.pdf</code></td><td>行为树渲染图</td></tr>
+    </tbody>
+  </table>
+
+  <footer>
+    BT_Expansion · 仅用于学习与研究目的
+  </footer>
+</div>
+</body>
+</html>

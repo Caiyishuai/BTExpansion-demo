@@ -1,4 +1,9 @@
 from graphviz import Digraph
+import os
+
+# 项目根目录与统一输出目录
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+OUTPUT_DIR = os.path.join(PROJECT_ROOT, "output")
 
 
 # 定义一个简单的树节点类
@@ -66,8 +71,9 @@ def build_graph(node, graph, is_root=False):
             build_graph(child, graph, False)
 
 
-# 读取文件内容
-with open("MoveBtoB.ptml", "r") as file:
+# 读取文件内容（从 output/ 目录）
+ptml_path = os.path.join(OUTPUT_DIR, "MoveBtoB.ptml")
+with open(ptml_path, "r") as file:
     file_content = file.read()
 
 # 解析文件内容
@@ -84,5 +90,6 @@ else:
     # 如果没有子节点，则图可能为空或仅包含root（此时应决定如何处理）
     print("The root node has no children to display.")
 
-# 保存和查看图（这部分代码未修改）
-dot.render('ptml_tree', view=True)
+# 保存并查看图，输出到 output/ 目录
+os.makedirs(OUTPUT_DIR, exist_ok=True)
+dot.render(os.path.join(OUTPUT_DIR, "ptml_tree"), view=True)

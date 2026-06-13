@@ -1,0 +1,18 @@
+# BT_Expansion 依赖
+# 安装: pip install -r requirements.txt
+
+# ---- 核心（运行 main.py 演示所需）----
+numpy
+tabulate
+
+# ---- 行为树加载 / PTML 解析（scripts、utils、behavior_tree）----
+py_trees
+antlr4-python3-runtime
+shortuuid
+
+# ---- 行为树可视化 ----
+pydot
+graphviz          # 需另外安装系统 Graphviz: macOS `brew install graphviz`
+
+# ---- 可选：PTML 代码格式化 ----
+autopep8
