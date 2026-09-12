@@ -20,3 +20,6 @@ env/
 
 # OS
 .DS_Store
+
+# WorkBuddy 工作区记忆（本地，不入库）
+.workbuddy/
