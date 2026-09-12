@@ -15,6 +15,7 @@
 ## 目录
 
 - [快速开始](#快速开始)
+- [示例与生成的行为树（由简单到复杂）](#示例与生成的行为树由简单到复杂)
 - [一、如何写动作模型](#一如何写动作模型)
 - [二、语法注意事项（务必过一遍）](#二语法注意事项务必过一遍)
 - [三、必须避免的写法](#三必须避免的写法)
@@ -36,7 +37,99 @@ python ../scripts/pddl2bt.py --check robot_fetch/domain.pddl robot_fetch/problem
 # 2. 完整转换：grounding → 生成策略树 → 执行验证 → 导出 PTML
 python ../scripts/pddl2bt.py robot_fetch/domain.pddl robot_fetch/problem.pddl \
        -o ../output --name robot_fetch
+
+# 3. 把生成的行为树渲染成图片（SVG + PNG）
+python ../scripts/render_bt.py --all
 ```
+
+---
+
+## 示例与生成的行为树（由简单到复杂）
+
+下面 5 个例子由简单到复杂递进。每一张都是该 PDDL **实际跑通后生成的行为树**，
+由 `scripts/render_bt.py` 渲染，图片与 DOT 源码存放在各自样例目录下。
+
+**看图例**：
+
+- **蓝色 `?`** = Selector（回退）：依次尝试子节点，直到有一个成功
+- **绿色 `→`** = Sequence（顺序）：依次执行子节点，直到有一个失败
+- **琥珀色椭圆** = 条件守卫（一组命题；多个文字分行显示，`…` 表示此处省略）
+- **粉色圆角框** = 动作
+
+---
+
+### 1. 最简：`movebtob`（9 结点）
+
+`MoveBtoB` 是 BT Expansion 论文自带的例子，也是本项目对拍基准。
+它的树只有 5 个动作/条件叶子和 4 个控制节点，适合第一次理解"树长什么样"。
+
+**关键观察**：最外层是 `?`（回退）——**要么"已经在 ab"直接成功，要么执行 `move-b-to-ab`**。
+这就是响应式的来源：每次 tick 先查条件，不满足才动。
+
+![movebtob 行为树](movebtob/bt.png)
+
+---
+
+### 2. 经典搬运：`minimal`（16 结点）
+
+[第 1 节](#一如何写动作模型)那份最小模板（把杯子从厨房搬到书桌）生成的真实树。
+
+**关键观察**：顺着最左路径一路向下读，就是一条完整计划
+`robot-at(kitchen) → pick(cup,kitchen) → move(kitchen,desk) → place(cup,desk)`；
+但每一层左边都挂着一个"如果条件已经满足就跳过"的守卫。
+所以同一棵树既能从"刚开机"开始跑，也能从"杯子已在书桌上"直接结束。
+
+![minimal 行为树](minimal/bt.png)
+
+---
+
+### 3. 负前提：`neg_precond`（19 结点）
+
+domain 写成 `:precondition (and (not (dirty ?i)) (dry ?i))`——只能给"不脏"的物体上漆。
+适配器自动引入补谓词，于是树里出现 **`not-dirty(cube)`**：
+
+**关键观察**：注意左侧那些 `not-dirty(cube)` 守卫——它们**不是**你写的，
+而是适配器为负前提自动生成的补谓词。目标是 `painted(cube)`，
+最下方能看到为了满足它，树会走 `wash → dry-it → paint` 这条链。
+
+![neg_precond 行为树](neg_precond/bt.png)
+
+---
+
+### 4. 条件效果（分支 add）：`cond_effects`（16 结点）
+
+这是表达力扩展里最"高级"的一个：`pick` 带两条 `(when C E)`，
+编译器把它拆成 4 个前提互斥的分支。
+
+**关键观察**：看右侧那个 `pick(vase)[-fragile,-heavy]`——
+分支名直接标出了它要求的前提：**不 fragile 且不 heavy**。
+为了满足它，左边的子树会主动先做 `reinforce` 和 `lighten` 把这两个性质去掉，
+从而避开会产生 `broken` / `tired` 的有害分支。
+
+![cond_effects 行为树](cond_effects/bt.png)
+
+---
+
+### 5. 规模化：`robot_fetch`（71 结点）
+
+同一个 domain，只是对象变多（3 个 location + 1 个 item）：
+3 条 lifted 算子模板接地出 15 条动作，生成的树膨胀到 71 个结点。
+
+**关键观察**：这棵树宽到需要横着看——它直观说明了为什么
+**grounding 规模是这条路线的主要实际瓶颈**（详见
+[ADMISSIBILITY.md §5.5](ADMISSIBILITY.md#55-控制-grounding-规模两层收紧)）。
+树的下方可以找到完整计划 `move(bar,kitchen) → pick → move(kitchen,desk) → place`。
+（本图为可读起见省略了条件节点的部分文字，矢量原图见 `robot_fetch/bt.svg`。）
+
+<img src="robot_fetch/bt.png" width="100%" alt="robot_fetch 行为树">
+
+---
+
+> 自己渲染任意 PDDL 的树：
+> ```bash
+> python ../scripts/render_bt.py domain.pddl problem.pddl -o output/bt
+> # 生成 output/bt.svg / output/bt.png / output/bt.dot
+> ```
 
 ---
 
@@ -268,9 +361,16 @@ python ../scripts/pddl2bt.py domain.pddl problem.pddl -v
 
 # 存在阻断项时仍强行尝试（放弃 Sound/Complete 保证）
 python ../scripts/pddl2bt.py domain.pddl problem.pddl --no-strict
+
+# 把行为树渲染成图片
+python ../scripts/render_bt.py domain.pddl problem.pddl -o out/bt   # -> out/bt.svg + bt.png
+python ../scripts/render_bt.py --all                               # 渲染全部内置样例
 ```
 
 退出码：`0` 成功 / `1` 判定为不可转 / `2` 规划失败或执行未达目标。
+
+渲染脚本依赖 graphviz 的 `dot` 命令（`brew install graphviz`）；
+`--cond-lines N` 可限制条件节点显示行数，用于收窄过宽的树。
 
 ### 4.2 Python API
 
@@ -366,14 +466,20 @@ if val == 'success':
 
 ## 例子目录
 
-| 目录 | 演示的能力 |
-| --- | --- |
-| `movebtob/` | 与 `src/bt_expansion/examples.py` 手写版**逐动作语义等价**的对拍基准 |
-| `robot_fetch/` | lifted + `:types`：3 条算子模板 grounding 出多条动作 |
-| `neg_precond/` | 负前提的补谓词编码：生成 `wash → dry-it → paint` |
-| `cond_effects/` | 条件效果（分支 add）编译 |
-| `static_prune/` | 静态谓词剪枝：6 房间走廊，`move` 实例 36→10，超时→0.02s |
-| `unsupported/` | 反例集：析取 / 数值 / 量词等阻断项，验证检查器能精确拒绝 |
+每个样例目录下都带 `bt.png` / `bt.svg`（跑通后生成的行为树图）与 `bt.dot`（DOT 源码）。
+
+| 目录 | 演示的能力 | 行为树 |
+| --- | --- | --- |
+| `movebtob/` | 与 `src/bt_expansion/examples.py` 手写版**逐动作语义等价**的对拍基准 | [图](movebtob/bt.png) |
+| `minimal/` | 最小可运行模板：3 动作 / 3 对象 | [图](minimal/bt.png) |
+| `neg_precond/` | 负前提的补谓词编码：生成 `wash → dry-it → paint` | [图](neg_precond/bt.png) |
+| `cond_effects/` | 条件效果（分支 add）编译 | [图](cond_effects/bt.png) |
+| `robot_fetch/` | lifted + `:types`：3 条算子模板 grounding 出多条动作 | [图](robot_fetch/bt.png) |
+| `static_prune/` | 静态谓词剪枝：6 房间走廊，`move` 实例 36→10，超时→0.02s | — |
+| `unsupported/` | 反例集：析取 / 数值 / 量词等阻断项，验证检查器能精确拒绝 | — |
+
+> `static_prune/` 的树有 488 个结点，图太宽不适合内嵌；需要时用
+> `python ../scripts/render_bt.py static_prune/domain.pddl static_prune/problem.pddl` 自行生成。
 
 ## 验证（回归 13/13 PASS）
 

@@ -306,6 +306,10 @@ python scripts/pddl2bt.py --check domain.pddl problem.pddl
 # 3. 完整转换并导出 PTML
 python scripts/pddl2bt.py domain.pddl problem.pddl -o output --name mytree
 
+# 3.5 把生成的行为树渲染成图片（SVG + PNG）
+python scripts/render_bt.py domain.pddl problem.pddl -o output/bt
+python scripts/render_bt.py --all          # 渲染全部内置样例
+
 # 4. 回归验证（对拍 + 边界识别 + 响应式 + 条件效果 + 规模收紧）
 python scripts/verify_pddl_adapter.py
 python scripts/verify_reactivity.py
