@@ -13,6 +13,9 @@
 - **PTML 导出**：将生成的行为树序列化为 `.ptml` 文本，统一输出到 `output/` 目录。
 - **可视化**：通过 Graphviz 将 `.ptml` 渲染为树状图（PDF / 图片）。
 - **鲁棒性测试**：随机生成规划问题集，批量验证算法正确性与性能。
+- **PDDL 前端**：直接输入标准 PDDL（domain + problem），自动编译为 grounded STRIPS
+  并生成带 Sound/Complete 保证的**响应式策略树**（绕过传统规划器的解序列）；
+  支持 `:typing`、负前提、条件效果等表达力扩展。用法与示例见 [`pddl/README.md`](pddl/README.md)。
 
 ---
 
@@ -33,10 +36,18 @@ BT_Expansion/
 │   │   └── examples.py         # 内置规划问题示例集
 │   ├── behavior_tree/          # 行为树节点定义与 PTML 编译器
 │   ├── behavior_lib/           # 行为节点库（Selector / Sequence / Inverter 等）
+│   ├── pddl_adapter/           # PDDL 前端：解析 / 兼容性判定 / grounding / 条件效果编译
 │   └── utils/                  # 加载、绘制等工具
+├── pddl/                       # PDDL 样例、行为树图片与准入规则文档
+│   ├── README.md               # PDDL 前端使用指南（含由简单到复杂的示例）
+│   ├── ADMISSIBILITY.md        # 什么 PDDL 能/不能拿到 Sound/Complete 保证
+│   └── <example>/              # 每个样例：domain.pddl / problem.pddl / bt.png / bt.svg
 └── scripts/                    # 独立脚本
     ├── visualize_ptml.py       # 读取 output/ 中的 .ptml 并渲染为树图
-    └── benchmark.py            # 批量随机测试（鲁棒性 / 性能基准）
+    ├── benchmark.py            # 批量随机测试（鲁棒性 / 性能基准）
+    ├── pddl2bt.py              # PDDL → 行为树 CLI（判定 / 转换 / 导出）
+    ├── render_bt.py            # 把生成的行为树渲染为 SVG / PNG
+    └── verify_*.py             # 适配器回归验证脚本
 ```
 
 ---

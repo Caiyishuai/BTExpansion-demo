@@ -1,0 +1,25 @@
+digraph BT {
+  rankdir=TB;
+  bgcolor="white";
+  fontname="Helvetica";
+  node [fontname="Helvetica" fontsize=11 style="rounded,filled" penwidth=1.2];
+  edge [color="#888780" penwidth=1.0 arrowsize=0.7];
+  nodesep=0.22; ranksep=0.45;
+  n0 [label="?" shape=box fillcolor="#E6F1FB" color="#185FA5" fontcolor="#2C2C2A"];
+  n1 [label="at-b-ab" shape=ellipse fillcolor="#FAEEDA" color="#854F0B" fontcolor="#2C2C2A"];
+  n0 -> n1;
+  n2 [label="→" shape=box fillcolor="#EAF3DE" color="#3B6D11" fontcolor="#2C2C2A"];
+  n3 [label="?" shape=box fillcolor="#E6F1FB" color="#185FA5" fontcolor="#2C2C2A"];
+  n4 [label="free-ab\nway-clear" shape=ellipse fillcolor="#FAEEDA" color="#854F0B" fontcolor="#2C2C2A"];
+  n3 -> n4;
+  n5 [label="→" shape=box fillcolor="#EAF3DE" color="#3B6D11" fontcolor="#2C2C2A"];
+  n6 [label="free-ab\nfree-as" shape=ellipse fillcolor="#FAEEDA" color="#854F0B" fontcolor="#2C2C2A"];
+  n5 -> n6;
+  n7 [label="move-s-to-as" shape=box fillcolor="#FBEAF0" color="#993556" fontcolor="#2C2C2A"];
+  n5 -> n7;
+  n3 -> n5;
+  n2 -> n3;
+  n8 [label="move-b-to-ab" shape=box fillcolor="#FBEAF0" color="#993556" fontcolor="#2C2C2A"];
+  n2 -> n8;
+  n0 -> n2;
+}
