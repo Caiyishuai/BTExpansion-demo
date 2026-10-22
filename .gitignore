@@ -23,3 +23,6 @@ env/
 
 # WorkBuddy 工作区记忆（本地，不入库）
 .workbuddy/
+
+# 运行产物（PTML / 树图，由 btplan 生成）
+output/

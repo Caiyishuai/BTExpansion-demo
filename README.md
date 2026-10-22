@@ -1,165 +1,178 @@
-# BT_Expansion
+# btplan
 
-> 行为树扩展算法（Behavior Tree Expansion）演示项目
+> 行为树扩展规划（BT Expansion）：给定初始状态、目标和可用动作，自动生成一棵**能达成目标的行为树**，并由 **py_trees** 驱动执行。
 
-本项目实现并演示了一种**行为树扩展算法**：给定规划问题的初始状态 `start`、目标状态 `goal` 以及可用动作集合 `actions`，算法会自动扩展生成一棵能够从初始状态可靠到达目标状态的**行为树（Behavior Tree）**，并支持执行、可视化与 PTML 文本导出。
-
----
-
-## 功能特性
-
-- **行为树扩展算法**：从目标条件出发，反向扩展动作子树，直至行为树可在初始状态成功运行。
-- **行为树执行**：基于 `tick` 机制驱动行为树运行，并统计执行代价（cost）与 tick 次数。
-- **PTML 导出**：将生成的行为树序列化为 `.ptml` 文本，统一输出到 `output/` 目录。
-- **可视化**：通过 Graphviz 将 `.ptml` 渲染为树状图（PDF / 图片）。
-- **鲁棒性测试**：随机生成规划问题集，批量验证算法正确性与性能。
-- **PDDL 前端**：直接输入标准 PDDL（domain + problem），自动编译为 grounded STRIPS
-  并生成带 Sound/Complete 保证的**响应式策略树**（绕过传统规划器的解序列）；
-  支持 `:typing`、负前提、条件效果等表达力扩展。用法与示例见 [`pddl/README.md`](pddl/README.md)。
+核心思路：**规划不碰 py_trees，执行才用 py_trees。**
 
 ---
 
-## 目录结构
-
-```
-BT_Expansion/
-├── main.py                     # 演示入口：规划 → 生成行为树 → 执行 → 导出 PTML
-├── requirements.txt            # 依赖清单
-├── output/                     # 所有生成产物（.ptml / 渲染图等）
-│   ├── MoveBtoB.ptml
-│   ├── ptml_tree               # Graphviz 源
-│   └── ptml_tree.pdf           # 渲染结果
-├── src/                        # 源代码
-│   ├── bt_expansion/           # 核心算法包
-│   │   ├── algorithm.py        # 行为树扩展算法（BTExpAlgorithm）
-│   │   ├── planning.py         # 规划基础：Action、状态转移、数据打印等
-│   │   └── examples.py         # 内置规划问题示例集
-│   ├── behavior_tree/          # 行为树节点定义与 PTML 编译器
-│   ├── behavior_lib/           # 行为节点库（Selector / Sequence / Inverter 等）
-│   ├── pddl_adapter/           # PDDL 前端：解析 / 兼容性判定 / grounding / 条件效果编译
-│   └── utils/                  # 加载、绘制等工具
-├── pddl/                       # PDDL 样例、行为树图片与准入规则文档
-│   ├── README.md               # PDDL 前端使用指南（含由简单到复杂的示例）
-│   ├── ADMISSIBILITY.md        # 什么 PDDL 能/不能拿到 Sound/Complete 保证
-│   └── <example>/              # 每个样例：domain.pddl / problem.pddl / bt.png / bt.svg
-└── scripts/                    # 独立脚本
-    ├── visualize_ptml.py       # 读取 output/ 中的 .ptml 并渲染为树图
-    ├── benchmark.py            # 批量随机测试（鲁棒性 / 性能基准）
-    ├── pddl2bt.py              # PDDL → 行为树 CLI（判定 / 转换 / 导出）
-    ├── render_bt.py            # 把生成的行为树渲染为 SVG / PNG
-    └── verify_*.py             # 适配器回归验证脚本
-```
-
----
-
-## 环境依赖与安装
-
-要求 Python 3.8+。安装依赖：
+## 30 秒跑通
 
 ```bash
-pip install -r requirements.txt
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -e .                 # 依赖只有 py_trees（统一写在 pyproject.toml）
+# 想画树图：pip install -e ".[draw]"（还需系统安装 graphviz）
+# 想跑测试：pip install -e ".[dev]"
+
+python examples/01_hello_bt.py   # 手写一棵树，看它怎么被 tick 驱动
+python examples/02_plan_and_run.py  # 规划 → 编译 → 运行（最核心一集）
 ```
 
-> 行为树可视化依赖系统 Graphviz：macOS 执行 `brew install graphviz`，Ubuntu 执行 `sudo apt-get install graphviz`。
+> 也可以用系统 Python 直接跑（示例会自动把 `src/` 加入模块路径），
+> 但需要先 `pip install py_trees~=2.2.3`。
 
 ---
 
-## 快速开始
-
-```bash
-python main.py
-```
-
-程序将依次完成：
-
-1. 加载规划问题（默认示例 `MoveBtoB`）并打印动作 / 状态表；
-2. 运行行为树扩展算法生成行为树；
-3. 打印行为树结构，并将其导出为 `output/MoveBtoB.ptml`；
-4. 执行行为树，输出求解步骤、节点数、代价与 tick 次数。
-
-可视化生成的行为树：
-
-```bash
-python scripts/visualize_ptml.py   # 输出 output/ptml_tree.pdf
-```
-
-运行鲁棒性 / 性能测试：
-
-```bash
-python scripts/benchmark.py
-```
-
----
-
-## 核心模块说明
-
-### `src/bt_expansion/algorithm.py` —— 行为树扩展算法
-
-核心类 `BTExpAlgorithm`，典型用法：
+## 最小示例
 
 ```python
-from bt_expansion.algorithm import BTExpAlgorithm, state_transition
+from btplan import Action, solve
 
-algo = BTExpAlgorithm(verbose=True)
-algo.clear()
-algo.run_algorithm(start, goal, actions)   # 生成行为树，保存在 algo.bt
-algo.print_solution()                       # 打印行为树
-ptml = algo.save_ptml_file("MoveBtoB")     # 导出 PTML 至 output/
+actions = [
+    Action("Move(b,ab)",
+           pre={"Free(ab)"},                    # 前提：ab 位置空着
+           add={"At(b,ab)"},                    # 做完：b 在 ab
+           del_set={"Free(ab)", "At(b,pb)"}),   # 做完：ab 不空了、b 不在 pb
+]
 
-val, obj, cost, ticks = algo.bt.cost_tick(state, 0, 0)  # 执行行为树
+result = solve(start={"Free(ab)", "At(b,pb)"}, goal={"At(b,ab)"}, actions=actions)
+print(result.summary())
+# 成功=True  状态=SUCCESS  tick=1  代价=1.0  动作=['Move(b,ab)']
 ```
 
-### `src/bt_expansion/planning.py` —— 规划基础
-
-- `Action`：动作类，包含前提 `pre`、增加效果 `add`、删除效果 `del_set` 与代价 `cost`。
-- `state_transition(state, action)`：根据动作计算后继状态。
-- `print_action_data_table(goal, start, actions)`：以表格形式打印规划问题。
-
-### `src/bt_expansion/examples.py` —— 示例问题集
-
-内置 `MoveBtoB`、`MakeCoffee`、`SoftdrinkCost`、`Test` 等多个规划问题，每个函数返回 `(goal, start, actions)`。示例 `MoveBtoB`：
+`solve()` 内部走完四步。想改其中任何一步，就自己拼：
 
 ```python
-def MoveBtoB():
-    actions = []
-    a = Action(name="Move(b,ab)")
-    a.pre = {'Free(ab)', 'WayClear'}
-    a.add = {'At(b,ab)'}
-    a.del_set = {'Free(ab)', 'At(b,pb)'}
-    a.cost = 1
-    actions.append(a)
-    # ... 其余动作
-    start = {'Free(ab)', 'Free(as)', 'At(b,pb)', 'At(s,ps)'}
-    goal = {'At(b,ab)'}
-    return goal, start, actions
+from btplan import Planner, SymbolicEnv, BehaviorTree, compile_tree, run, to_ptml
+
+plan = Planner().plan(start, goal, actions)   # ① 规划：产出 IR 树（纯数据）
+print(to_ptml(plan))                          #    顺手导出 PTML 文本
+
+env  = SymbolicEnv(start, actions)            # ② 环境：状态的唯一持有者
+bt   = BehaviorTree(compile_tree(plan))       # ③ 编译：IR → py_trees
+bt.bind_env(env)
+
+result = run(bt, env, goal=goal)              # ④ 运行：py_trees 驱动 tick
 ```
-
-### `src/behavior_tree/` —— 行为树与 PTML
-
-- `BehaviorTree.py`：定义叶节点 `Leaf`（动作 `act` / 条件 `cond`）与控制节点 `ControlBT`（选择器 `?` / 序列 `>`），均实现 `tick` 方法。
-- `ptml/`：PTML 语法（ANTLR4 生成的词法 / 语法分析器）及编译器。
 
 ---
 
-## 输出产物
+## 数据流
 
-所有运行时生成的文件统一写入 **`output/`** 目录，包括：
+```
+start / goal / actions
+        │
+        ▼
+  ① 规划  btplan.core.Planner      纯符号反向扩展，产出 IR 树（不碰 py_trees）
+        │
+        ▼
+  ② IR   btplan.ir.BTNode ──► to_ptml()  打印 / 存档 / 测试快照
+        │
+        ▼
+  ③ 编译 btplan.runtime.compile_tree()   IR → py_trees 节点
+        │
+        ▼
+  ④ 运行 btplan.env.run()           py_trees 驱动 tick，直到成功 / 失败
+```
 
-| 文件 | 说明 |
+一句话概括每一层：**规划算结构，IR 存结构，编译换语言，py_trees 负责跑。**
+
+---
+
+## 目录地图
+
+```
+src/btplan/
+├── core/        规划内核：动作模型、扩展规则、符号求值、搜索主循环（纯符号）
+│   ├── action.py      Action：name / pre / add / del_set / cost
+│   ├── expander.py    三条扩展判据（算法的核心）
+│   ├── evaluate.py    不执行，只判断"树能否从 start 跑起来"
+│   └── planner.py     Planner：BT Expansion 主循环
+├── ir/          中间表示：BTNode（纯数据）+ PTML 序列化
+├── runtime/     py_trees 运行时
+│   ├── nodes.py        ConditionNode / ActionNode / Sequence / Fallback / CompositeCondition
+│   ├── compiler.py     IR → py_trees
+│   ├── library.py      行为库（文字 → 节点类的映射）
+│   └── tree.py         BehaviorTree：bind_env / tick / print_tree / draw
+├── env/         环境：状态怎么存、动作怎么生效、tick 循环怎么跑
+├── domains/     内置示例问题，拿来就能跑
+├── pddl/        PDDL 前端：解析 / 兼容性判定 / grounding（可选进阶）
+├── tools/       benchmark：随机问题批量验证
+├── cli.py       命令行入口 `btplan plan|run|draw|bench`
+└── pipeline.py  solve() 一键流水线
+
+examples/   按编号顺序学：01 运行时 → 02 全流程 → 03 PDDL → 04 自定义 → 05 新任务
+tests/      与四层一一对应的测试
+docs/       分主题文档 + tutorial.html（图文交互教程）
+```
+
+---
+
+## 学习路径
+
+> 想先"看图 + 点着玩"？打开 **[docs/tutorial.html](docs/tutorial.html)**：
+> 图文教程，含两个可交互 demo（逐 tick 执行、扩展过程分步演示），单文件离线可用。
+
+| 顺序 | 文件 | 你会学到 |
+| --- | --- | --- |
+| 0 | `docs/tutorial.html` | 图文教程 + 交互 demo（推荐先看） |
+| 1 | `examples/01_hello_bt.py` | 行为树运行时长什么样、tick 怎么推进任务、RUNNING 是什么 |
+| 2 | `examples/02_plan_and_run.py` | 完整闭环：规划 → PTML → 编译 → py_trees 驱动 |
+| 3 | `examples/03_pddl.py` | 直接吃 PDDL（domain + problem）生成行为树 |
+| 4 | `examples/04_custom_domain.py` | 自定义 Condition / Action 节点 + 行为库（接真实机器人） |
+| 5 | `examples/05_new_task.py` | 从零写一个新任务：设计文字 → start/goal → 动作 → 运行 → 画图 |
+| 6 | `docs/01-architecture.md` | 四层架构、"我该改哪一层" |
+| 7 | `docs/02-planning.md` | 算法细节：三条扩展判据、剪枝、终止条件 |
+| 8 | `docs/03-runtime.md` | 怎么写自己的 Condition / Action 节点 |
+| 9 | `docs/04-pddl.md` | 直接用 PDDL（domain + problem）生成行为树 |
+
+跑测试：
+
+```bash
+python tests/test_runtime.py              # 运行时层
+python tests/test_planner.py              # 规划层
+python tests/test_pddl.py                 # PDDL 前端（跑仓库自带 7 个样例）
+python tests/test_tools.py                # 随机问题生成器 + benchmark
+python scripts/benchmark.py               # 随机问题批量验证（鲁棒性 / 性能）
+```
+
+---
+
+## 文档索引
+
+| 文档 | 内容 |
 | --- | --- |
-| `*.ptml` | 行为树的 PTML 文本表示 |
-| `ptml_tree` | Graphviz DOT 源文件 |
-| `ptml_tree.pdf` | 行为树渲染图 |
+| [docs/tutorial.html](docs/tutorial.html) | **图文交互教程**（含可交互 demo，浏览器直接打开） |
+| [docs/01-architecture.md](docs/01-architecture.md) | 四层架构、数据流、关键设计约定 |
+| [docs/02-planning.md](docs/02-planning.md) | 规划算法：扩展判据、剪枝、终止、可扩展点 |
+| [docs/03-runtime.md](docs/03-runtime.md) | py_trees 运行时：节点语义、自定义节点、行为库 |
+| [docs/04-pddl.md](docs/04-pddl.md) | PDDL 前端：domain + problem → 行为树 |
+| [docs/05-glossary.md](docs/05-glossary.md) | 术语表 |
+
+---
+
+## 命令行
+
+```bash
+btplan plan  --domain MoveBtoB                 # 规划并打印 PTML
+btplan plan  --domain MakeCoffee --out output  # 同时写入 output/MakeCoffee.ptml
+btplan run   --domain MoveBtoB                 # 规划 + py_trees 执行
+btplan run   --pddl pddl/movebtob/domain.pddl pddl/movebtob/problem.pddl
+btplan draw  --domain MoveBtoB --out output    # 渲染成 Graphviz 图
+btplan bench --problems 50                     # 随机问题批量验证
+```
+
+`--domain` 可用值见 `btplan/domains/problems.py`（`MoveBtoB`、`ServeCoffee`、`MakeCoffee`、
+`SoftdrinkCost`、`Cond2BelongsToCond3`、`MoveBtoB_num`、`MakeCoffeeCost`、`Test`）。
 
 ---
 
 ## 引用
 
-本项目实现的行为树扩展算法源自以下论文。如果本项目对你的研究有帮助，请引用：
+本项目的算法源自以下论文，若对你的研究有帮助请引用：
 
 > Cai, Z., Li, M., Huang, W., & Yang, W. (2021). **BT Expansion: a Sound and Complete Algorithm for Behavior Planning of Intelligent Robots with Behavior Trees**. *Proceedings of the AAAI Conference on Artificial Intelligence*, *35*(7), 6058–6065. https://doi.org/10.1609/aaai.v35i7.16755
-
-BibTeX：
 
 ```bibtex
 @article{cai2021bt,
@@ -174,17 +187,6 @@ BibTeX：
 }
 ```
 
----
+相关项目：
 
-## 相关项目
-
-- **LLM-OBTEA**：原作者团队（DIDS-EI）基于 OBTEA 的官方扩展项目，将大语言模型与行为树扩展算法结合。
-  <https://github.com/DIDS-EI/LLM-OBTEA>
-
----
-
-## 版权与许可
-
-- 算法版权归原论文作者所有：Zhongxuan Cai、Minglong Li、Wanrong Huang、Wenjing Yang（National University of Defense Technology / National Innovation Institute of Defense Technology）。
-- 本仓库为该算法的学习与研究性复现，仅用于**学习与研究目的**，不得用于任何商业用途。
-- 使用本项目代码或思想时，请遵循上述引用要求并尊重原作者版权。
+- **LLM-OBTEA**（原作者团队将大模型与行为树扩展结合的官方扩展）：<https://github.com/DIDS-EI/LLM-OBTEA>

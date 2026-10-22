@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "btplan"
+version = "0.1.0"
+description = "行为树扩展规划（BT Expansion）：符号规划产出行为树，py_trees 驱动执行"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+    "py_trees~=2.2.3",
+]
+
+[project.optional-dependencies]
+draw = ["pydot~=1.4"]        # 行为树渲染（还需系统安装 graphviz）
+dev = ["pytest>=7.0"]        # 跑 tests/
+
+[project.scripts]
+btplan = "btplan.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["btplan*"]

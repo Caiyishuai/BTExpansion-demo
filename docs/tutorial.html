@@ -1,0 +1,1845 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>btplan 教程 · 行为树扩展规划（BT Expansion）</title>
+<style>
+:root{
+  --bg:#f6f7f9; --card:#ffffff; --ink:#1b2027; --muted:#454f5c; --line:#e4e8ec;
+  --accent:#2f6feb; --accent-soft:#eef4ff; --accent-ink:#1b4fae;
+  --sel:#5a34c4; --seq:#15468f; --cond:#066b3a; --act:#9c4f12;
+  --ok:#0b6b3c; --fail:#a91c12; --run:#7a4a00;
+  --code-bg:#f7f8fa; --radius:12px;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0; background:var(--bg); color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  font-size:15.5px; line-height:1.75;
+}
+.layout{display:flex; max-width:1240px; margin:0 auto; gap:32px; padding:0 20px}
+main{flex:1; min-width:0; padding-bottom:80px}
+aside{width:268px; flex:none}
+.toc{position:sticky; top:24px; padding:20px 16px; background:var(--card); border:1px solid var(--line);
+  border-radius:14px; font-size:14.6px; box-shadow:0 1px 2px rgba(16,24,40,.05); counter-reset:toc}
+.toc h4{margin:0 0 14px; font-size:12.5px; letter-spacing:.1em; color:var(--muted); text-transform:uppercase;
+  display:flex; align-items:center; gap:7px; padding-bottom:10px; border-bottom:1px solid var(--line)}
+.toc h4::before{content:""; width:16px; height:16px; flex:none;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232f6feb' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M8 6h12M8 12h12M8 18h12'/%3E%3Cpath d='M3.5 6h.01M3.5 12h.01M3.5 18h.01'/%3E%3C/svg%3E") center/contain no-repeat}
+.toc a{display:flex; align-items:center; gap:10px; padding:7px 10px; color:var(--muted); text-decoration:none;
+  border-radius:8px; border-left:2px solid transparent; transition:background .15s, transform .15s, color .15s}
+.toc a::before{counter-increment:toc; content:counter(toc,decimal-leading-zero); flex:none;
+  font-family:"SFMono-Regular",Consolas,monospace; font-size:11px; font-weight:700; color:#fff;
+  background:#93a3b8; border-radius:5px; min-width:24px; padding:2px 5px; text-align:center}
+.toc a:nth-of-type(6n+1)::before{background:#2f6feb}
+.toc a:nth-of-type(6n+2)::before{background:#5a34c4}
+.toc a:nth-of-type(6n+3)::before{background:#0b7285}
+.toc a:nth-of-type(6n+4)::before{background:#066b3a}
+.toc a:nth-of-type(6n+5)::before{background:#9c4f12}
+.toc a:nth-of-type(6n+6)::before{background:#8a2f6b}
+.toc a:hover{background:#f4f7fc; color:var(--accent-ink); transform:translateX(2px)}
+.toc a.sub{padding-left:24px; font-size:13.6px}
+.toc a.sub::before{background:#cdd4de; color:#5a6472; min-width:20px}
+.toc a.active{background:var(--accent-soft); color:var(--accent-ink); font-weight:600; border-left-color:var(--accent)}
+
+/* ---------- hero ---------- */
+header.hero{background:linear-gradient(180deg,#ffffff 0%,#eef3fb 100%); border-bottom:1px solid var(--line)}
+.hero-inner{max-width:1240px; margin:0 auto; padding:56px 20px 44px}
+.hero h1{margin:0 0 10px; font-size:38px; letter-spacing:-.5px}
+.hero p.lead{margin:0 0 22px; font-size:17px; color:var(--muted); max-width:760px}
+.hero .tags{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:26px}
+.tag{background:#fff; border:1px solid var(--line); border-radius:999px; padding:5px 13px; font-size:13px; color:var(--muted)}
+.tag b{color:var(--accent-ink)}
+.stats{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:14px; max-width:860px}
+.stat{background:#fff; border:1px solid var(--line); border-radius:10px; padding:14px 16px}
+.stat .n{font-size:24px; font-weight:650; color:var(--accent-ink); line-height:1.2}
+.stat .l{font-size:13px; color:var(--muted)}
+
+/* ---------- sections ---------- */
+section{padding:44px 0 8px; border-top:1px solid var(--line)}
+section:first-of-type{border-top:none}
+h2{font-size:26px; margin:8px 0 6px; letter-spacing:-.2px}
+h2 .num{display:inline-block; width:30px; height:30px; line-height:30px; text-align:center; border-radius:8px;
+  background:var(--accent-soft); color:var(--accent-ink); font-size:15px; margin-right:10px}
+h3{font-size:19px; margin:30px 0 8px}
+h4{font-size:15.5px; margin:20px 0 6px; color:var(--ink)}
+p{margin:10px 0}
+.lead-sec{color:var(--muted); margin-bottom:18px}
+ul,ol{padding-left:22px}
+li{margin:5px 0}
+code{font-family:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace; font-size:13.4px; font-weight:600;
+  background:#e9edf2; border:1px solid #d7dde4; border-radius:5px; padding:1px 6px; color:#0d2436}
+a{color:var(--accent)}
+
+.grid{display:grid; gap:14px; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); margin:18px 0}
+.card{background:var(--card); border:1px solid var(--line); border-radius:var(--radius); padding:16px 18px}
+.card h4{margin:0 0 6px; font-size:15.5px}
+.card p{margin:0; color:var(--muted); font-size:14px}
+.card .icon{font-size:20px; margin-bottom:6px; display:block}
+
+pre{background:var(--code-bg); border:1px solid var(--line); border-radius:10px; padding:14px 16px;
+  overflow-x:auto; font-family:"SFMono-Regular",Consolas,Menlo,monospace; font-size:13.2px; line-height:1.65; margin:12px 0}
+pre .k{color:#8250df} pre .s{color:#06623a} pre .c{color:#8b949e} pre .f{color:#15468f} pre .n{color:#b8500f}
+.out{background:#fbfcfd; border-left:3px solid var(--accent)}
+.out::before{content:"输出"; display:block; font-size:11px; letter-spacing:.1em; color:var(--muted); margin-bottom:6px}
+table{width:100%; border-collapse:collapse; margin:14px 0; font-size:14px; background:#fff;
+  border:1px solid var(--line); border-radius:10px; overflow:hidden}
+th,td{padding:10px 12px; text-align:left; border-bottom:1px solid var(--line); vertical-align:top}
+th{background:#f2f5f9; font-weight:600; font-size:13.5px}
+tr:last-child td{border-bottom:none}
+.note{border-left:3px solid var(--accent); background:var(--accent-soft); padding:12px 16px; border-radius:0 8px 8px 0; margin:16px 0; font-size:14.5px}
+.warn{border-left:3px solid var(--run); background:#fff8e8}
+figure{margin:18px 0; background:#fff; border:1px solid var(--line); border-radius:var(--radius); padding:16px}
+figure svg{width:100%; height:auto; display:block}
+figcaption{font-size:13px; color:var(--muted); margin-top:10px; text-align:center}
+
+/* ---------- 装饰 ---------- */
+#progress{position:fixed; top:0; left:0; height:3px; width:0; z-index:80;
+  background:linear-gradient(90deg,#2f6feb,#5a34c4); transition:width .08s linear}
+header.hero{position:relative; overflow:hidden}
+header.hero::before{content:""; position:absolute; inset:0; pointer-events:none;
+  background-image:radial-gradient(circle at 1px 1px,#c3cfe3 1px,transparent 0); background-size:22px 22px;
+  opacity:.55; -webkit-mask-image:linear-gradient(180deg,rgba(0,0,0,.6),transparent 78%);
+          mask-image:linear-gradient(180deg,rgba(0,0,0,.6),transparent 78%)}
+.hero-inner{position:relative}
+.hero h1{background:linear-gradient(92deg,#12305c,#2f6feb 60%,#5a34c4);
+  -webkit-background-clip:text; background-clip:text; color:transparent}
+.tag{display:inline-flex; align-items:center; gap:6px; box-shadow:0 1px 2px rgba(16,24,40,.04)}
+.tag::before{content:""; width:6px; height:6px; border-radius:50%; background:var(--accent)}
+.tag:nth-child(2)::before{background:#5a34c4}
+.tag:nth-child(3)::before{background:#066b3a}
+.tag:nth-child(4)::before{background:#9c4f12}
+
+.card{position:relative; overflow:hidden; box-shadow:0 1px 2px rgba(16,24,40,.05);
+  transition:transform .18s ease, box-shadow .18s ease}
+.card:hover{transform:translateY(-3px); box-shadow:0 10px 26px rgba(16,24,40,.09)}
+.card::before{content:""; position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--accent)}
+.card:nth-child(2)::before{background:#5a34c4} .card:nth-child(3)::before{background:#066b3a}
+.card:nth-child(4)::before{background:#9c4f12} .card:nth-child(5)::before{background:#0b7285}
+.card:nth-child(6)::before{background:#8a2f6b}
+.icon{display:inline-flex; align-items:center; justify-content:center; width:34px; height:34px;
+  border-radius:9px; background:#f2f5fa; margin-bottom:8px}
+.icon svg{width:20px; height:20px; display:block}
+
+.stat{position:relative; overflow:hidden; box-shadow:0 1px 2px rgba(16,24,40,.05)}
+.stat::after{content:""; position:absolute; right:-14px; top:-14px; width:48px; height:48px;
+  border-radius:50%; background:#eef4ff}
+.stat .n{position:relative}
+
+h2{position:relative}
+h2 .num{box-shadow:0 2px 6px rgba(47,111,235,.22)}
+figure{box-shadow:0 1px 2px rgba(16,24,40,.05)}
+table{box-shadow:0 1px 2px rgba(16,24,40,.05)}
+thead th{background:linear-gradient(180deg,#f8fafd,#eef2f8)}
+tbody tr:hover{background:#fafbfd}
+
+pre{position:relative}
+pre.out{padding-top:28px}
+pre.out::after{content:""; position:absolute; left:14px; top:11px; width:36px; height:8px;
+  background:radial-gradient(circle at 3px 4px,#cfd6de 2.5px,transparent 2.7px),
+             radial-gradient(circle at 13px 4px,#cfd6de 2.5px,transparent 2.7px),
+             radial-gradient(circle at 23px 4px,#cfd6de 2.5px,transparent 2.7px)}
+pre.out::before{content:"输出"; display:block; position:absolute; right:14px; top:6px;
+  margin:0; font-size:11px; letter-spacing:.1em; color:var(--muted)}
+
+.note{position:relative; padding-left:46px; border-radius:0 10px 10px 0;
+  box-shadow:0 1px 2px rgba(16,24,40,.04)}
+.note::before{content:""; position:absolute; left:14px; top:13px; width:20px; height:20px;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232f6feb' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Cpath d='M12 11v5'/%3E%3Cpath d='M12 7.6h.01'/%3E%3C/svg%3E") center/contain no-repeat}
+.note.warn::before{background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23b8860b' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M12 4l9 16H3z'/%3E%3Cpath d='M12 10v4'/%3E%3Cpath d='M12 17h.01'/%3E%3C/svg%3E") center/contain no-repeat}
+
+.demo-head .t{display:flex; align-items:center; gap:8px}
+.demo-head .t::before{content:""; width:8px; height:8px; border-radius:50%;
+  background:linear-gradient(135deg,#2f6feb,#5a34c4); box-shadow:0 0 0 3px #eef4ff}
+.side-h::before{content:"◆ "; color:var(--accent); font-size:9px; vertical-align:middle}
+
+#totop{position:fixed; right:22px; bottom:22px; width:42px; height:42px; border-radius:50%;
+  border:1px solid var(--line); background:#fff; color:var(--muted); cursor:pointer; z-index:70;
+  display:none; align-items:center; justify-content:center; box-shadow:0 4px 14px rgba(16,24,40,.12)}
+#totop.show{display:flex}
+#totop:hover{color:var(--accent-ink); border-color:var(--accent)}
+.js section{opacity:0; transform:translateY(10px); transition:opacity .5s ease, transform .5s ease}
+.js section.in{opacity:1; transform:none}
+.toc a.active{background:var(--accent-soft); color:var(--accent-ink); font-weight:600}
+
+/* ---------- 更丰富的配色与小图标 ---------- */
+.hero::after{content:""; position:absolute; right:-140px; top:-160px; width:440px; height:440px; border-radius:50%;
+  pointer-events:none; background:radial-gradient(circle at 35% 35%,rgba(47,111,235,.20),rgba(90,52,196,.12) 55%,transparent 72%)}
+.hero-inner::before{content:""; position:absolute; left:-180px; bottom:-260px; width:400px; height:400px; border-radius:50%;
+  pointer-events:none; background:radial-gradient(circle at 50% 50%,rgba(14,116,144,.16),transparent 68%)}
+
+.stat .n{background:linear-gradient(92deg,#1b4fae,#5a34c4); -webkit-background-clip:text; background-clip:text; color:transparent}
+.stat:nth-child(2) .n{background:linear-gradient(92deg,#066b3a,#0b7285); -webkit-background-clip:text; background-clip:text}
+.stat:nth-child(3) .n{background:linear-gradient(92deg,#9c4f12,#b8860b); -webkit-background-clip:text; background-clip:text}
+.stat:nth-child(4) .n{background:linear-gradient(92deg,#8a2f6b,#5a34c4); -webkit-background-clip:text; background-clip:text}
+
+h2 .num{box-shadow:0 2px 6px rgba(16,24,40,.12)}
+section:nth-of-type(6n+1) h2 .num{background:#eef4ff; color:#1b4fae}
+section:nth-of-type(6n+2) h2 .num{background:#f2ecff; color:#5a34c4}
+section:nth-of-type(6n+3) h2 .num{background:#e6f6f7; color:#0b7285}
+section:nth-of-type(6n+4) h2 .num{background:#e7f5ec; color:#066b3a}
+section:nth-of-type(6n+5) h2 .num{background:#fdf0e3; color:#9c4f12}
+section:nth-of-type(6n+6) h2 .num{background:#fbecf4; color:#8a2f6b}
+
+h3{display:flex; align-items:center; gap:9px}
+h3::before{content:""; flex:none; width:8px; height:8px; border-radius:2px; background:#2f6feb;
+  box-shadow:0 0 0 3px rgba(47,111,235,.13)}
+section:nth-of-type(3n+2) h3::before{background:#5a34c4; box-shadow:0 0 0 3px rgba(90,52,196,.13)}
+section:nth-of-type(3n+3) h3::before{background:#066b3a; box-shadow:0 0 0 3px rgba(6,107,58,.13)}
+section:nth-of-type(4n+1) h3::before{background:#9c4f12; box-shadow:0 0 0 3px rgba(156,79,18,.13)}
+
+h4{display:flex; align-items:center; gap:7px}
+h4::before{content:""; flex:none; width:5px; height:14px; border-radius:3px;
+  background:linear-gradient(180deg,#2f6feb,#5a34c4)}
+.card h4::before{display:none}
+
+ul li::marker{color:var(--accent)}
+table th:first-child{color:#1b2027}
+tbody tr:hover{background:#fbfcfe}
+
+.demo-side .side-h{display:flex; align-items:center; gap:6px}
+.demo-side .side-h::before{content:""; width:13px; height:13px; flex:none; border-radius:3px;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232f6feb' stroke-width='2.2' stroke-linecap='round'%3E%3Cpath d='M4 7h16M4 12h10M4 17h13'/%3E%3C/svg%3E") center/contain no-repeat}
+
+/* ---------- demo ---------- */
+.demo{background:var(--card); border:1px solid var(--line); border-radius:var(--radius); padding:0; overflow:hidden; margin:20px 0}
+.demo-head{padding:14px 18px; border-bottom:1px solid var(--line); background:#fbfcfd; display:flex;
+  flex-wrap:wrap; gap:10px; align-items:center; justify-content:space-between}
+.demo-head .t{font-weight:650}
+.demo-head .hint{font-size:13px; color:var(--muted)}
+.demo-body{display:grid; grid-template-columns:1fr 320px; gap:0}
+@media(max-width:860px){.demo-body{grid-template-columns:1fr}}
+.demo-stage{padding:18px; border-right:1px solid var(--line)}
+@media(max-width:860px){.demo-stage{border-right:none; border-bottom:1px solid var(--line)}}
+.demo-side{padding:18px; background:#fbfcfd}
+.controls{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:14px}
+button{font:inherit; font-size:14px; padding:7px 14px; border-radius:8px; border:1px solid var(--line);
+  background:#fff; color:var(--ink); cursor:pointer}
+button:hover{border-color:var(--accent); color:var(--accent-ink)}
+button.primary{background:var(--accent); border-color:var(--accent); color:#fff}
+button.primary:hover{background:var(--accent-ink); color:#fff}
+button:disabled{opacity:.45; cursor:not-allowed}
+
+/* tree */
+.tree{font-family:"SFMono-Regular",Consolas,Menlo,monospace; font-size:13px; line-height:1.9}
+.tnode{padding:2px 0 2px 12px; border-left:2px dashed #dfe3e8; margin-left:6px}
+.tnode.root{border-left:none; margin-left:0; padding-left:0}
+.tlabel{display:inline-block; padding:2px 10px; border-radius:6px; border:1px solid var(--line);
+  background:#fff; white-space:nowrap; font-weight:600; color:var(--ink)}
+.tlabel.sel{border-color:var(--sel); color:var(--sel); background:#f6f3ff}
+.tlabel.seq{border-color:var(--seq); color:var(--seq); background:var(--accent-soft)}
+.tlabel.cond{border-color:var(--cond); color:var(--cond); background:#eefaf2}
+.tlabel.act{border-color:var(--act); color:var(--act); background:#fff5ee}
+.tnode.success>.tlabel{border-color:var(--ok); background:#ddf3e6; color:#054d2c; font-weight:700}
+.tnode.failure>.tlabel{border-color:#b96a62; background:#fdeceb; color:#8f1810}
+.tnode.running>.tlabel{border-color:#c08c35; background:#ffeecd; color:#6b4200; font-weight:700}
+.tnode.dim>.tlabel{opacity:.8}
+/* Sequence 的孩子横排（用 → 串联），Fallback 的孩子竖排 */
+.svgscroll{overflow:auto; background:#fcfdff; border:1px solid var(--line); border-radius:8px; padding:8px}
+.svgscroll svg{display:block; width:1345px; max-width:none; height:auto}
+.tkids-row{display:flex; flex-wrap:wrap; align-items:flex-start; gap:6px; padding:2px 0 2px 12px;
+  border-left:2px dashed #dfe3e8; margin-left:6px}
+.tnode.inrow{border-left:none; margin-left:0; padding-left:0}
+.tarrow{color:#6b7684; padding:0 2px; align-self:center; font-weight:700}
+.legend{display:flex; flex-wrap:wrap; gap:12px; font-size:12.5px; color:var(--muted); margin:14px 0 4px}
+.legend i{display:inline-block; width:10px; height:10px; border-radius:3px; margin-right:5px}
+
+.chips{display:flex; flex-wrap:wrap; gap:6px; margin:8px 0}
+.chip{font-family:"SFMono-Regular",Consolas,monospace; font-size:13.2px; font-weight:700; padding:3px 10px;
+  border-radius:999px; background:#eef1f5; border:1px solid #cfd6de; color:#2b3644}
+.chip.on{background:#d9f2e4; border-color:#6fc295; color:#054d2c}
+.chip.new{background:#ffefd2; border-color:#d9a63f; color:#6b4200}
+.chip.off{background:#f2f4f7; border-color:#dde2e8; color:#5a6472; text-decoration:line-through}
+.side-h{font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); margin:14px 0 6px}
+.side-h:first-child{margin-top:0}
+.log{font-family:"SFMono-Regular",Consolas,monospace; font-size:12.4px; background:#fff; border:1px solid var(--line);
+  border-radius:8px; padding:10px 12px; max-height:230px; overflow:auto; margin:0}
+.log div{padding:1px 0; white-space:pre-wrap}
+.log .s{color:var(--ok)} .log .f{color:var(--fail)} .log .r{color:var(--run)} .log .m{color:var(--muted)}
+.stepbar{display:flex; gap:6px; align-items:center; font-size:13px; color:var(--muted)}
+.dot{width:8px; height:8px; border-radius:50%; background:#dfe3e8}
+.dot.on{background:var(--accent)}
+
+footer{border-top:1px solid var(--line); background:#fff; margin-top:40px}
+.foot{max-width:1240px; margin:0 auto; padding:28px 20px; display:flex; flex-wrap:wrap; gap:14px;
+  justify-content:space-between; align-items:center; font-size:13.5px; color:var(--muted)}
+.foot b{color:var(--ink)}
+@media(max-width:1000px){aside{display:none}}
+</style>
+</head>
+<body>
+<script>document.documentElement.classList.add('js');</script>
+<div id="progress"></div>
+
+<header class="hero">
+  <div class="hero-inner">
+    <h1>btplan · 行为树扩展规划教程</h1>
+    <p class="lead">
+      给定初始状态、目标和可用动作，自动生成一棵<strong>能达成目标的行为树</strong>，
+      并由 <strong>py_trees</strong> 驱动执行。本教程从"它是什么"讲到"怎么改"，
+      中间穿插可以点着玩的交互演示。
+    </p>
+    <div class="tags">
+      <span class="tag">算法：<b>BT Expansion（AAAI 2021）</b></span>
+      <span class="tag">运行时：<b>py_trees 驱动 tick</b></span>
+      <span class="tag">四层架构：<b>规划 / IR / 运行时 / 环境</b></span>
+      <span class="tag">输入：<b>符号动作 或 标准 PDDL</b></span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="n">4</div><div class="l">层：核心 / IR / 运行时 / 环境</div></div>
+      <div class="stat"><div class="n">1</div><div class="l">条数据流：规划 → IR → 编译 → 运行</div></div>
+      <div class="stat"><div class="n">3</div><div class="l">条反向扩展判据</div></div>
+      <div class="stat"><div class="n">100%</div><div class="l">随机基准测试成功率</div></div>
+    </div>
+  </div>
+</header>
+
+<div class="layout">
+<aside>
+  <nav class="toc">
+    <h4>目录</h4>
+    <a href="#intro">1 · 项目介绍</a>
+    <a href="#concept" class="sub">核心概念</a>
+    <a href="#start">2 · 快速开始</a>
+    <a href="#usage">3 · 使用方法</a>
+    <a href="#usage-api" class="sub">Python API</a>
+    <a href="#usage-cli" class="sub">命令行</a>
+    <a href="#usage-pddl" class="sub">PDDL 输入</a>
+    <a href="#newtask">4 · 从零写一个新任务</a>
+    <a href="#newtask-draw" class="sub">画出来的树图</a>
+    <a href="#demo-tick">5 · Demo：逐 tick 执行</a>
+    <a href="#algo">6 · 核心算法</a>
+    <a href="#demo-expand" class="sub">Demo：扩展过程</a>
+    <a href="#arch">7 · 项目架构</a>
+    <a href="#custom">8 · 用户自定义方法</a>
+    <a href="#custom-node" class="sub">自定义节点</a>
+    <a href="#custom-env" class="sub">自定义环境</a>
+    <a href="#verify">9 · 测试与基准</a>
+    <a href="#faq">10 · 常见问题</a>
+  </nav>
+</aside>
+
+<main>
+
+<!-- ===================== 1 项目介绍 ===================== -->
+<section id="intro">
+  <h2><span class="num">1</span>项目介绍</h2>
+  <p class="lead-sec">
+    btplan 是 <strong>BT Expansion</strong> 算法的一个清晰、可复现的工程实现。
+    它把"规划"和"执行"彻底分开：规划阶段只做集合运算、产出<strong>纯数据的行为树</strong>（IR）；
+    执行阶段把 IR 编译成 <strong>py_trees</strong> 节点，由 py_trees 决定每一拍走哪条分支。
+  </p>
+
+  <div class="grid">
+    <div class="card"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="#1b4fae" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.2"/><path d="M12 2v2.4M12 19.6V22M2 12h2.4M19.6 12H22"/></svg></span><h4>自动建树</h4><p>给 start / goal / actions，自动生成一棵可达目标的行为树，不需要手写控制流。</p></div>
+    <div class="card"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="#5a34c4" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.6-5.9"/><path d="M20 4v4h-4"/></svg></span><h4>响应式</h4><p>每拍都从根重新判断，外界把条件改了也能继续跑，而不是照着固定序列执行到底。</p></div>
+    <div class="card"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="#066b3a" stroke-width="1.8" stroke-linecap="round"><circle cx="6" cy="6" r="2"/><circle cx="18" cy="6" r="2"/><circle cx="12" cy="18" r="2"/><path d="M6 8v3h12V8M12 11v5"/></svg></span><h4>py_trees 驱动</h4><p>运行时完全由 py_trees 的 Selector / Sequence 语义驱动，可无缝接入真实机器人。</p></div>
+    <div class="card"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="#9c4f12" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h4"/></svg></span><h4>PDDL 直入</h4><p>支持标准 PDDL domain + problem，自动 grounding，并给出能否保证 Sound/Complete 的诊断。</p></div>
+    <div class="card"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="#0b7285" stroke-width="1.8" stroke-linejoin="round"><rect x="4" y="4" width="7" height="7" rx="1.4"/><rect x="13" y="4" width="7" height="7" rx="1.4"/><rect x="4" y="13" width="7" height="7" rx="1.4"/><rect x="13" y="13" width="7" height="7" rx="1.4"/></svg></span><h4>易扩展</h4><p>自定义条件 / 动作 / 环境，只需继承一个类或实现四个方法，规划侧零改动。</p></div>
+    <div class="card"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="#8a2f6b" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span><h4>可验证</h4><p>分层测试 + 随机问题基准（成功率 100%），重构与改动都有回归保护。</p></div>
+  </div>
+
+  <h3 id="concept">三个核心概念</h3>
+  <p>理解这三个概念，就理解了整个项目：</p>
+  <table>
+    <tr><th style="width:120px">概念</th><th>含义</th><th>例子</th></tr>
+    <tr><td><b>文字</b></td><td>表示一个事实的字符串，是状态的最小单位</td><td><code>At(b,ab)</code>、<code>Free(ab)</code></td></tr>
+    <tr><td><b>状态</b></td><td>当前为真的文字集合。条件判断就是"集合包含"</td><td><code>{Free(ab), At(b,pb)}</code></td></tr>
+    <tr><td><b>动作</b></td><td><code>name / pre / add / del_set / cost</code>，执行后 <code>(state − del) ∪ add</code></td><td><code>Move(b,ab)</code></td></tr>
+  </table>
+
+  <figure>
+    <svg viewBox="0 0 900 300" role="img" aria-label="行为树结构示意">
+      <defs>
+        <marker id="ar" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+          <path d="M0,0 L9,4.5 L0,9 z" fill="#8b95a1"/>
+        </marker>
+      </defs>
+      <rect x="330" y="14" width="240" height="42" rx="10" fill="#f4f0ff" stroke="#5a34c4"/>
+      <text x="450" y="41" text-anchor="middle" font-size="15" fill="#5a34c4" font-family="monospace" font-weight="600">Fallback（选择）</text>
+      <line x1="450" y1="56" x2="230" y2="94" stroke="#8b95a1" marker-end="url(#ar)"/>
+      <line x1="450" y1="56" x2="670" y2="94" stroke="#8b95a1" marker-end="url(#ar)"/>
+
+      <rect x="96" y="94" width="268" height="42" rx="10" fill="#e9f7ef" stroke="#066b3a"/>
+      <text x="230" y="121" text-anchor="middle" font-size="15" fill="#066b3a" font-family="monospace" font-weight="600">cond At(b,ab)</text>
+
+      <rect x="536" y="94" width="268" height="42" rx="10" fill="#eef4ff" stroke="#15468f"/>
+      <text x="670" y="121" text-anchor="middle" font-size="15" fill="#15468f" font-family="monospace" font-weight="600">Sequence（顺序）</text>
+      <line x1="670" y1="136" x2="570" y2="176" stroke="#8b95a1" marker-end="url(#ar)"/>
+      <line x1="670" y1="136" x2="770" y2="176" stroke="#8b95a1" marker-end="url(#ar)"/>
+
+      <rect x="478" y="176" width="184" height="44" rx="10" fill="#e9f7ef" stroke="#066b3a"/>
+      <text x="570" y="203" text-anchor="middle" font-size="13.5" fill="#066b3a" font-family="monospace" font-weight="600">cond Free(ab) &amp; WayClear</text>
+      <text x="676" y="206" text-anchor="middle" font-size="18" fill="#3d4652">→</text>
+      <rect x="692" y="176" width="156" height="44" rx="10" fill="#fff3ea" stroke="#9c4f12"/>
+      <text x="770" y="203" text-anchor="middle" font-size="13.5" fill="#9c4f12" font-family="monospace" font-weight="600">act Move(b,ab)</text>
+
+      <text x="96" y="168" font-size="13" fill="#3d4652">左分支：目标已达成 → 什么都不做</text>
+      <text x="96" y="192" font-size="13" fill="#3d4652">右分支：Sequence 的孩子横排，用 → 串联</text>
+      <text x="96" y="242" font-size="13" fill="#3d4652">Fallback：任一分支成功即成功（分支竖排）</text>
+      <text x="96" y="266" font-size="13" fill="#3d4652">Sequence：全部成功才成功（孩子横排）</text>
+      <text x="96" y="290" font-size="13" fill="#3d4652">cond 绿 = 条件，act 橙 = 动作</text>
+    </svg>
+    <figcaption>生成出来的行为树长什么样：每个 Fallback 都保留"目标已达成"这一分支，这就是响应式能力的来源。</figcaption>
+  </figure>
+</section>
+
+<!-- ===================== 2 快速开始 ===================== -->
+<section id="start">
+  <h2><span class="num">2</span>快速开始</h2>
+  <pre><span class="c"># 1) 建环境并装上（依赖只有 py_trees）</span>
+python3 -m venv .venv &amp;&amp; source .venv/bin/activate
+pip install -e .
+<span class="c"># 想画图：pip install -e ".[draw]"（还需系统安装 graphviz）</span>
+
+<span class="c"># 2) 跑两个示例</span>
+python examples/01_hello_bt.py       <span class="c"># 手写一棵树，看它怎么被 tick 驱动</span>
+python examples/02_plan_and_run.py   <span class="c"># 规划 → 编译 → 运行（最核心一集）</span></pre>
+
+  <h3>最小示例</h3>
+  <pre><span class="k">from</span> btplan <span class="k">import</span> Action, solve
+
+actions = [
+    Action(<span class="s">"Move(b,ab)"</span>,
+           pre={<span class="s">"Free(ab)"</span>},                    <span class="c"># 前提：ab 位置空着</span>
+           add={<span class="s">"At(b,ab)"</span>},                    <span class="c"># 做完：b 在 ab</span>
+           del_set={<span class="s">"Free(ab)"</span>, <span class="s">"At(b,pb)"</span>}),   <span class="c"># 做完：ab 不空了、b 不在 pb</span>
+]
+
+result = solve(start={<span class="s">"Free(ab)"</span>, <span class="s">"At(b,pb)"</span>}, goal={<span class="s">"At(b,ab)"</span>}, actions=actions)
+<span class="f">print</span>(result.summary())</pre>
+  <pre class="out">成功=True  状态=SUCCESS  tick=1  代价=1.0  动作=['Move(b,ab)']</pre>
+</section>
+
+<!-- ===================== 3 使用方法 ===================== -->
+<section id="usage">
+  <h2><span class="num">3</span>使用方法</h2>
+  <p class="lead-sec">三条使用路径：Python API（最灵活）、命令行（最快）、PDDL（最省事）。</p>
+
+  <h3 id="usage-api">3.1 Python API：四步</h3>
+  <pre><span class="k">from</span> btplan <span class="k">import</span> Planner, SymbolicEnv, BehaviorTree, compile_tree, run, to_ptml
+
+plan = Planner().plan(start, goal, actions)   <span class="c"># ① 规划：产出 IR 树（纯数据）</span>
+<span class="f">print</span>(to_ptml(plan))                          <span class="c">#    顺手导出 PTML 文本</span>
+
+env  = SymbolicEnv(start, actions)            <span class="c"># ② 环境：状态的唯一持有者</span>
+bt   = BehaviorTree(compile_tree(plan))       <span class="c"># ③ 编译：IR → py_trees</span>
+bt.bind_env(env)
+
+result = run(bt, env, goal=goal)              <span class="c"># ④ 运行：py_trees 驱动 tick</span></pre>
+
+  <table>
+    <tr><th style="width:90px">步骤</th><th style="width:210px">入口</th><th>作用</th></tr>
+    <tr><td>① 规划</td><td><code>Planner().plan(start, goal, actions)</code></td><td>纯符号反向扩展，返回 IR 树 <code>BTNode</code></td></tr>
+    <tr><td>② 环境</td><td><code>SymbolicEnv(start, actions)</code></td><td>持有状态，提供 <code>observe / apply / satisfies</code></td></tr>
+    <tr><td>③ 编译</td><td><code>compile_tree(plan, library=None)</code></td><td>IR → py_trees 节点树</td></tr>
+    <tr><td>④ 运行</td><td><code>run(bt, env, goal=..., max_ticks=...)</code></td><td>反复 <code>bt.tick()</code>，返回 <code>RunResult</code></td></tr>
+    <tr><td>一键</td><td><code>solve(start, goal, actions)</code></td><td>上面四步的合成糖</td></tr>
+  </table>
+
+  <p><code>RunResult</code> 里有什么：</p>
+  <table>
+    <tr><th>字段</th><th>含义</th></tr>
+    <tr><td><code>success</code> / <code>status</code></td><td>是否达成目标 / 根节点最后状态</td></tr>
+    <tr><td><code>ticks</code> / <code>cost</code></td><td>tick 次数 / 累计动作代价</td></tr>
+    <tr><td><code>actions</code></td><td>实际执行过的动作名序列</td></tr>
+    <tr><td><code>trace</code> / <code>plan</code></td><td>每拍节点状态文本 / 规划出的 IR 树</td></tr>
+  </table>
+
+  <h3 id="usage-cli">3.2 命令行</h3>
+  <pre>btplan plan  --domain MoveBtoB                 <span class="c"># 规划并打印行为树与 PTML</span>
+btplan plan  --domain MakeCoffee --out output   <span class="c"># 同时写入 output/MakeCoffee.ptml</span>
+btplan run   --domain MoveBtoB                  <span class="c"># 规划 + py_trees 执行</span>
+btplan run   --pddl pddl/movebtob/domain.pddl pddl/movebtob/problem.pddl
+btplan draw  --domain MoveBtoB --out output     <span class="c"># 渲染成 dot / png / svg</span>
+btplan bench --problems 50                      <span class="c"># 随机问题批量验证</span></pre>
+  <pre class="out">$ btplan run --domain MakeCoffee
+=========== 运行 ===========
+成功=True  状态=SUCCESS  tick=1  代价=7.0
+动作=['MoveTo(Table)', 'Put(Table,VacuumCup)', 'MoveTo(CoffeeMachine)',
+      'OpCoffeeMachine', 'Grasp(Coffee)', 'MoveTo(Table)', 'Put(Table,Coffee)']</pre>
+
+  <h3 id="usage-pddl">3.3 直接用 PDDL</h3>
+  <pre><span class="k">from</span> btplan.pddl <span class="k">import</span> solve_pddl, default_sample
+
+domain, problem = default_sample(<span class="s">"movebtob"</span>)   <span class="c"># 仓库自带样例</span>
+res = solve_pddl(domain, problem)
+
+<span class="f">print</span>(res.report.format())   <span class="c"># 兼容性诊断：能否保证 Sound/Complete</span>
+<span class="f">print</span>(res.ptml)              <span class="c"># 行为树（PTML 文本）</span>
+<span class="f">print</span>(res.summary())         <span class="c"># 执行结果</span></pre>
+  <pre class="out">判定: SUPPORTED —— 可直接转换，保持 Sound + Complete 保证
+成功=True  状态=SUCCESS  tick=1  代价=4.0  动作=['move-s-to-as', 'move-b-to-ab']</pre>
+  <div class="note">
+    PDDL 场景<strong>不需要手写任何节点类</strong>：grounding 产出的文字（<code>at-b-ab</code>、<code>free-ab</code>）
+    就是条件节点的名字，默认语义（"文字是否在状态里"）直接可用。
+  </div>
+</section>
+
+<!-- ===================== 4 从零写一个新任务 ===================== -->
+<section id="newtask">
+  <h2><span class="num">4</span>从零写一个新任务（完整案例）</h2>
+  <p class="lead-sec">
+    这一节从"我脑子里有个任务"走到"树图都画出来了"。跟着做一遍，你就掌握了一个新任务接入 btplan 的全部要点。
+    配套脚本：<code>examples/05_new_task.py</code>；同一任务也内置为 <code>--domain ServeCoffee</code>。
+  </p>
+
+  <h3>任务描述</h3>
+  <p>机器人要把一杯咖啡送到餐桌上。拆解后有几层依赖——正是这些依赖让生成的树有分叉：</p>
+  <table>
+    <tr><th style="width:230px">要达成</th><th>先要什么</th></tr>
+    <tr><td>咖啡在餐桌上</td><td>机器人在餐桌 <b>且</b> 手里有咖啡</td></tr>
+    <tr><td>机器人在餐桌</td><td>门开着（才能走过去）</td></tr>
+    <tr><td>手里有咖啡</td><td>机器人在咖啡机 <b>且</b> 手是空的</td></tr>
+    <tr><td>门开着</td><td>手是空的（初始就成立）</td></tr>
+  </table>
+
+  <h4>① 设计文字</h4>
+  <p>先把世界里的事实列出来。<b>文字就是字符串</b>，条件判断就是"集合包含"：</p>
+  <table>
+    <tr><th style="width:200px">文字</th><th>含义</th></tr>
+    <tr><td><code>At(Robot,Bar)</code> / <code>At(Robot,Machine)</code> / <code>At(Robot,Table)</code></td><td>机器人所在的位置</td></tr>
+    <tr><td><code>HandEmpty</code></td><td>手是空的</td></tr>
+    <tr><td><code>Holding(Coffee)</code></td><td>手里拿着咖啡</td></tr>
+    <tr><td><code>DoorOpen</code></td><td>门是开着的</td></tr>
+    <tr><td><code>On(Coffee,Table)</code></td><td>咖啡在餐桌上</td></tr>
+  </table>
+
+  <h4>② 写 start：一开始什么是真的</h4>
+  <pre>start = {<span class="s">"At(Robot,Bar)"</span>, <span class="s">"HandEmpty"</span>}</pre>
+
+  <h4>③ 写 goal：想让什么变成真的</h4>
+  <pre>goal = {<span class="s">"On(Coffee,Table)"</span>}</pre>
+  <div class="note">目标是<strong>合取</strong>的：集合里所有文字都要成立，算法会把整个目标作为一个条件一起回溯。</div>
+
+  <h4>④ 写 actions：每个动作的 pre / add / del_set</h4>
+  <pre>actions = [
+    Action(<span class="s">"Move(Robot,Machine)"</span>, pre={<span class="s">"DoorOpen"</span>},
+           add={<span class="s">"At(Robot,Machine)"</span>}, del_set={<span class="s">"At(Robot,Bar)"</span>, <span class="s">"At(Robot,Table)"</span>}, cost=<span class="n">1</span>),
+    Action(<span class="s">"Move(Robot,Table)"</span>, pre={<span class="s">"DoorOpen"</span>},
+           add={<span class="s">"At(Robot,Table)"</span>}, del_set={<span class="s">"At(Robot,Bar)"</span>, <span class="s">"At(Robot,Machine)"</span>}, cost=<span class="n">1</span>),
+    Action(<span class="s">"OpenDoor"</span>, pre={<span class="s">"HandEmpty"</span>}, add={<span class="s">"DoorOpen"</span>}, del_set=set(), cost=<span class="n">1</span>),
+    Action(<span class="s">"BrewCoffee"</span>, pre={<span class="s">"At(Robot,Machine)"</span>, <span class="s">"HandEmpty"</span>},
+           add={<span class="s">"Holding(Coffee)"</span>}, del_set={<span class="s">"HandEmpty"</span>}, cost=<span class="n">2</span>),
+    Action(<span class="s">"PlaceOnTable"</span>, pre={<span class="s">"At(Robot,Table)"</span>, <span class="s">"Holding(Coffee)"</span>},
+           add={<span class="s">"On(Coffee,Table)"</span>, <span class="s">"HandEmpty"</span>}, del_set={<span class="s">"Holding(Coffee)"</span>}, cost=<span class="n">1</span>),
+]</pre>
+  <div class="note warn">
+    <b>写动作的三个要点：</b><br>
+    1. <code>del_set</code> 里<b>一定要删掉同一谓词的其他取值</b>（走到 Machine 就不再在 Bar / Table），
+       否则状态会自相矛盾，树会走进死路。<br>
+    2. 名字要<b>唯一且可读</b>——它既是动作标识，也是运行时节点的名字（<code>Move(Robot,Table)</code>）。<br>
+    3. <code>cost</code> 目前只统计不参与搜索，写真实代价即可，将来换最优搜索直接受益。
+  </div>
+
+  <h4>⑤ 运行</h4>
+  <pre>python examples/05_new_task.py        <span class="c"># 脚本方式（规划 + 运行 + 导出 + 画图）</span>
+btplan run --domain ServeCoffee         <span class="c"># 或命令行方式</span></pre>
+  <pre class="out">=========== 运行 ===========
+成功=True  状态=SUCCESS  tick=1  代价=6.0
+执行序列： ['OpenDoor', 'Move(Robot,Machine)', 'BrewCoffee',
+           'Move(Robot,Table)', 'PlaceOnTable']
+最终状态： ['At(Robot,Table)', 'DoorOpen', 'HandEmpty', 'On(Coffee,Table)']</pre>
+  <p>算法自己找到了那条依赖链：先开门 → 去咖啡机 → 做咖啡 → 去餐桌 → 放下。</p>
+
+  <h4>⑥ 生成的行为树</h4>
+  <pre class="out">$ btplan plan --domain ServeCoffee
+selector
+    cond On(Coffee,Table)
+    sequence
+        selector
+            cond At(Robot,Table) & Holding(Coffee)
+            sequence
+                selector
+                    cond DoorOpen & Holding(Coffee)
+                    sequence
+                        cond DoorOpen & Holding(Coffee)
+                        act Move(Robot,Machine)
+                    sequence
+                        cond DoorOpen & Holding(Coffee)
+                        act Move(Robot,Table)
+                    …
+    …（完整输出见 btplan plan --domain ServeCoffee，
+       或导出成 output/ServeCoffee.ptml）</pre>
+  <p>读法：最外层 selector 的第一个分支是"咖啡已经在桌上了"（达成即收工），
+     第二个分支是"先凑齐条件，再执行 PlaceOnTable"。凑条件的过程又被继续展开，直到初始状态能兜住。</p>
+
+  <h4 id="newtask-draw">⑦ 把树画出来</h4>
+  <pre>btplan draw --domain ServeCoffee --out output
+<span class="c"># 需要：pip install -e ".[draw]" 以及系统安装 graphviz</span></pre>
+  <pre class="out">dot: output/servecoffee.dot
+png: output/servecoffee.png
+svg: output/servecoffee.svg</pre>
+  <figure>
+    <div class="svgscroll">
+      <!-- Generated by graphviz version 15.0.0 (20260523.1842)
+ -->
+<!-- Title: pastafarianism Pages: 1 -->
+<svg width="1345pt" height="764pt"
+ viewBox="0.00 0.00 1345.00 764.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 760)">
+<title>pastafarianism</title>
+<polygon fill="white" stroke="none" points="-4,4 -4,-760 1341.44,-760 1341.44,4 -4,4"/>
+<!-- Fallback -->
+<g id="node1" class="node">
+<title>Fallback</title>
+<polygon fill="cyan" stroke="black" points="782.35,-730.54 782.35,-745.46 765.35,-756 741.31,-756 724.31,-745.46 724.31,-730.54 741.31,-720 765.35,-720 782.35,-730.54"/>
+<text xml:space="preserve" text-anchor="middle" x="753.33" y="-734.7" font-family="Times,serif" font-size="9.00">Fallback</text>
+</g>
+<!-- On(Coffee,Table) -->
+<g id="node2" class="node">
+<title>On(Coffee,Table)</title>
+<ellipse fill="gray" stroke="black" cx="708.33" cy="-666" rx="46.04" ry="18"/>
+<text xml:space="preserve" text-anchor="middle" x="708.33" y="-662.7" font-family="Times,serif" font-size="9.00">On(Coffee,Table)</text>
+</g>
+<!-- Fallback&#45;&gt;On(Coffee,Table) -->
+<g id="edge1" class="edge">
+<title>Fallback&#45;&gt;On(Coffee,Table)</title>
+<path fill="none" stroke="black" d="M742.21,-719.7C737.07,-711.7 730.85,-702.02 725.15,-693.15"/>
+<polygon fill="black" stroke="black" points="728.19,-691.41 719.84,-684.9 722.3,-695.2 728.19,-691.41"/>
+</g>
+<!-- Sequence -->
+<g id="node3" class="node">
+<title>Sequence</title>
+<polygon fill="orange" stroke="black" points="826.33,-684 772.33,-684 772.33,-648 826.33,-648 826.33,-684"/>
+<text xml:space="preserve" text-anchor="middle" x="799.33" y="-662.7" font-family="Times,serif" font-size="9.00">Sequence</text>
+</g>
+<!-- Fallback&#45;&gt;Sequence -->
+<g id="edge2" class="edge">
+<title>Fallback&#45;&gt;Sequence</title>
+<path fill="none" stroke="black" d="M764.7,-719.7C769.88,-711.81 776.13,-702.3 781.89,-693.55"/>
+<polygon fill="black" stroke="black" points="784.7,-695.65 787.26,-685.37 778.85,-691.8 784.7,-695.65"/>
+</g>
+<!-- Fallback* -->
+<g id="node4" class="node">
+<title>Fallback*</title>
+<polygon fill="cyan" stroke="black" points="787.19,-586.54 787.19,-601.46 768.53,-612 742.14,-612 723.47,-601.46 723.47,-586.54 742.14,-576 768.53,-576 787.19,-586.54"/>
+<text xml:space="preserve" text-anchor="middle" x="755.33" y="-590.7" font-family="Times,serif" font-size="9.00">Fallback*</text>
+</g>
+<!-- Sequence&#45;&gt;Fallback* -->
+<g id="edge3" class="edge">
+<title>Sequence&#45;&gt;Fallback*</title>
+<path fill="none" stroke="black" d="M788.46,-647.7C783.55,-639.9 777.65,-630.51 772.2,-621.83"/>
+<polygon fill="black" stroke="black" points="775.17,-619.99 766.89,-613.39 769.25,-623.71 775.17,-619.99"/>
+</g>
+<!-- PlaceOnTable -->
+<g id="node50" class="node">
+<title>PlaceOnTable</title>
+<ellipse fill="gray" stroke="black" cx="843.33" cy="-594" rx="38.18" ry="18"/>
+<text xml:space="preserve" text-anchor="middle" x="843.33" y="-590.7" font-family="Times,serif" font-size="9.00">PlaceOnTable</text>
+</g>
+<!-- Sequence&#45;&gt;PlaceOnTable -->
+<g id="edge49" class="edge">
+<title>Sequence&#45;&gt;PlaceOnTable</title>
+<path fill="none" stroke="black" d="M810.21,-647.7C815.24,-639.7 821.32,-630.02 826.89,-621.15"/>
+<polygon fill="black" stroke="black" points="829.72,-623.23 832.08,-612.9 823.79,-619.51 829.72,-623.23"/>
+</g>
+<!-- At(Robot,Table) &amp; Holding(Coffee) -->
+<g id="node5" class="node">
+<title>At(Robot,Table) &amp; Holding(Coffee)</title>
+<ellipse fill="gray" stroke="black" cx="625.33" cy="-522" rx="84.51" ry="18"/>
+<text xml:space="preserve" text-anchor="middle" x="625.33" y="-518.7" font-family="Times,serif" font-size="9.00">At(Robot,Table) &amp; Holding(Coffee)</text>
+</g>
+<!-- Fallback*&#45;&gt;At(Robot,Table) &amp; Holding(Coffee) -->
+<g id="edge4" class="edge">
+<title>Fallback*&#45;&gt;At(Robot,Table) &amp; Holding(Coffee)</title>
+<path fill="none" stroke="black" d="M732.69,-580.81C714.23,-570.87 687.69,-556.57 665.62,-544.69"/>
+<polygon fill="black" stroke="black" points="667.31,-541.63 656.85,-539.97 663.99,-547.79 667.31,-541.63"/>
+</g>
+<!-- Sequence* -->
+<g id="node6" class="node">
+<title>Sequence*</title>
+<polygon fill="orange" stroke="black" points="782.46,-540 728.21,-540 728.21,-504 782.46,-504 782.46,-540"/>
+<text xml:space="preserve" text-anchor="middle" x="755.33" y="-518.7" font-family="Times,serif" font-size="9.00">Sequence*</text>
+</g>
+<!-- Fallback*&#45;&gt;Sequence* -->
+<g id="edge5" class="edge">
+<title>Fallback*&#45;&gt;Sequence*</title>
+<path fill="none" stroke="black" d="M755.33,-575.7C755.33,-568.41 755.33,-559.73 755.33,-551.54"/>
+<polygon fill="black" stroke="black" points="758.83,-551.62 755.33,-541.62 751.83,-551.62 758.83,-551.62"/>
+</g>
+<!-- Sequence************ -->
+<g id="node43" class="node">
+<title>Sequence************</title>
+<polygon fill="orange" stroke="black" points="996.21,-540 892.46,-540 892.46,-504 996.21,-504 996.21,-540"/>
+<text xml:space="preserve" text-anchor="middle" x="944.33" y="-518.7" font-family="Times,serif" font-size="9.00">Sequence************</text>
+</g>
+<!-- Fallback*&#45;&gt;Sequence************ -->
+<g id="edge42" class="edge">
+<title>Fallback*&#45;&gt;Sequence************</title>
+<path fill="none" stroke="black" d="M780.41,-582.37C785.65,-580.22 791.16,-578 796.33,-576 824.64,-565.07 856.28,-553.64 883.01,-544.2"/>
+<polygon fill="black" stroke="black" points="884.06,-547.54 892.33,-540.92 881.73,-540.94 884.06,-547.54"/>
+</g>
+<!-- Fallback** -->
+<g id="node7" class="node">
+<title>Fallback**</title>
+<polygon fill="cyan" stroke="black" points="612.03,-442.54 612.03,-457.46 591.71,-468 562.96,-468 542.64,-457.46 542.64,-442.54 562.96,-432 591.71,-432 612.03,-442.54"/>
+<text xml:space="preserve" text-anchor="middle" x="577.33" y="-446.7" font-family="Times,serif" font-size="9.00">Fallback**</text>
+</g>
+<!-- Sequence*&#45;&gt;Fallback** -->
+<g id="edge6" class="edge">
+<title>Sequence*&#45;&gt;Fallback**</title>
+<path fill="none" stroke="black" d="M727.92,-507.77C725.04,-506.46 722.14,-505.18 719.33,-504 685.19,-489.6 645.65,-475.01 616.98,-464.79"/>
+<polygon fill="black" stroke="black" points="618.19,-461.51 607.6,-461.47 615.85,-468.1 618.19,-461.51"/>
+</g>
+<!-- Move(Robot,Table)** -->
+<g id="node42" class="node">
+<title>Move(Robot,Table)**</title>
+<ellipse fill="gray" stroke="black" cx="755.33" cy="-450" rx="55.66" ry="18"/>
+<text xml:space="preserve" text-anchor="middle" x="755.33" y="-446.7" font-family="Times,serif" font-size="9.00">Move(Robot,Table)**</text>
+</g>
+<!-- Sequence*&#45;&gt;Move(Robot,Table)** -->
+<g id="edge41" class="edge">
+<title>Sequence*&#45;&gt;Move(Robot,Table)**</title>
+<path fill="none" stroke="black" d="M755.33,-503.7C755.33,-496.41 755.33,-487.73 755.33,-479.54"/>
+<polygon fill="black" stroke="black" points="758.83,-479.62 755.33,-469.62 751.83,-479.62 758.83,-479.62"/>
+</g>
+<!-- DoorOpen &amp; Holding(Coffee) -->
+<g id="node8" class="node">
+<title>DoorOpen &amp; Holding(Coffee)</title>
+<ellipse fill="gray" stroke="black" cx="215.33" cy="-378" rx="72.71" ry="18"/>
+<text xml:space="preserve" text-anchor="middle" x="215.33" y="-374.7" font-family="Times,serif" font-size="9.00">DoorOpen &amp; Holding(Coffee)</text>
+</g>
+<!-- Fallback**&#45;&gt;DoorOpen &amp; Holding(Coffee) -->
+<g id="edge7" class="edge">
+<title>Fallback**&#45;&gt;DoorOpen &amp; Holding(Coffee)</title>
+<path fill="none" stroke="black" d="M542.37,-442.58C489.34,-432.81 385.41,-413.47 297.33,-396 291.86,-394.91 286.18,-393.77 280.49,-392.61"/>
+<polygon fill="black" stroke="black" points="281.54,-389.26 271.04,-390.68 280.14,-396.12 281.54,-389.26"/>
+</g>
+<!-- Sequence** -->
+<g id="node9" class="node">
+<title>Sequence**</title>
+<polygon fill="orange" stroke="black" points="364.71,-396 305.96,-396 305.96,-360 364.71,-360 364.71,-396"/>
+<text xml:space="preserve" text-anchor="middle" x="335.33" y="-374.7" font-family="Times,serif" font-size="9.00">Sequence**</text>
+</g>
+<!-- Fallback**&#45;&gt;Sequence** -->
+<g id="edge8" class="edge">
+<title>Fallback**&#45;&gt;Sequence**</title>
+<path fill="none" stroke="black" d="M546.68,-440.13C503.35,-427.6 424.11,-404.68 375.93,-390.74"/>
+<polygon fill="black" stroke="black" points="377.01,-387.41 366.43,-388 375.06,-394.14 377.01,-387.41"/>
+</g>
+<!-- Sequence*** -->
+<g id="node12" class="node">
+<title>Sequence***</title>
+<polygon fill="orange" stroke="black" points="555.96,-396 492.71,-396 492.71,-360 555.96,-360 555.96,-396"/>
+<text xml:space="preserve" text-anchor="middle" x="524.33" y="-374.7" font-family="Times,serif" font-size="9.00">Sequence***</text>
+</g>
+<!-- Fallback**&#45;&gt;Sequence*** -->
+<g id="edge11" class="edge">
+<title>Fallback**&#45;&gt;Sequence***</title>
+<path fill="none" stroke="black" d="M564.23,-431.7C558.2,-423.73 550.91,-414.1 544.22,-405.26"/>
+<polygon fill="black" stroke="black" points="547.02,-403.17 538.2,-397.31 541.44,-407.4 547.02,-403.17"/>
+</g>
+<!-- Sequence**** -->
+<g id="node15" class="node">
+<title>Sequence****</title>
+<polygon fill="orange" stroke="black" points="664.21,-396 596.46,-396 596.46,-360 664.21,-360 664.21,-396"/>
+<text xml:space="preserve" text-anchor="middle" x="630.33" y="-374.7" font-family="Times,serif" font-size="9.00">Sequence****</text>
+</g>
+<!-- Fallback**&#45;&gt;Sequence**** -->
+<g id="edge14" class="edge">
+<title>Fallback**&#45;&gt;Sequence****</title>
+<path fill="none" stroke="black" d="M590.43,-431.7C596.47,-423.73 603.76,-414.1 610.45,-405.26"/>
+<polygon fill="black" stroke="black" points="613.22,-407.4 616.47,-397.31 607.64,-403.17 613.22,-407.4"/>
+</g>
+<!-- Sequence****** -->
+<g id="node22" class="node">
+<title>Sequence******</title>
+<polygon fill="orange" stroke="black" points="804.71,-396 727.96,-396 727.96,-360 804.71,-360 804.71,-396"/>
+<text xml:space="preserve" text-anchor="middle" x="766.33" y="-374.7" font-family="Times,serif" font-size="9.00">Sequence******</text>
+</g>
+<!-- Fallback**&#45;&gt;Sequence****** -->
+<g id="edge21" class="edge">
+<title>Fallback**&#45;&gt;Sequence******</title>
+<path fill="none" stroke="black" d="M605.22,-438.67C634.53,-427.81 681.24,-410.51 716.84,-397.33"/>
+<polygon fill="black" stroke="black" points="717.92,-400.66 726.08,-393.91 715.49,-394.1 717.92,-400.66"/>
+</g>
+<!-- DoorOpen &amp; Holding(Coffee)* -->
+<g id="node10" class="node">
+<title>DoorOpen &amp; Holding(Coffee)*</title>
+<ellipse fill="gray" stroke="black" cx="75.33" cy="-306" rx="75.33" ry="18"/>
+<text xml:space="preserve" text-anchor="middle" x="75.33" y="-302.7" font-family="Times,serif" font-size="9.00">DoorOpen &amp; Holding(Coffee)*</text>
+</g>
+<!-- Sequence**&#45;&gt;DoorOpen &amp; Holding(Coffee)* -->
+<g id="edge9" class="edge">
+<title>Sequence**&#45;&gt;DoorOpen &amp; Holding(Coffee)*</title>
+<path fill="none" stroke="black" d="M305.67,-363.1C302.88,-361.98 300.07,-360.93 297.33,-360 268.73,-350.28 195.43,-333.33 140.83,-321.22"/>
+<polygon fill="black" stroke="black" points="141.83,-317.86 131.31,-319.12 140.32,-324.69 141.83,-317.86"/>
+</g>
+<!-- Move(Robot,Machine) -->
+<g id="node11" class="node">
+<title>Move(Robot,Machine)</title>
+<ellipse fill="gray" stroke="black" cx="225.33" cy="-306" rx="56.97" ry="18"/>
+<text xml:space="preserve" text-anchor="middle" x="225.33" y="-302.7" font-family="Times,serif" font-size="9.00">Move(Robot,Machine)</text>
+</g>
+<!-- Sequence**&#45;&gt;Move(Robot,Machine) -->
+<g id="edge10" class="edge">
+<title>Sequence**&#45;&gt;Move(Robot,Machine)</title>
+<path fill="none" stroke="black" d="M307.86,-359.52C293.1,-350.13 274.79,-338.47 259.16,-328.53"/>
+<polygon fill="black" stroke="black" points="261.43,-325.82 251.11,-323.4 257.67,-331.73 261.43,-325.82"/>
+</g>
+<!-- DoorOpen &amp; Holding(Coffee)** -->
+<g id="node13" class="node">
+<title>DoorOpen &amp; Holding(Coffee)**</title>
+<ellipse fill="gray" stroke="black" cx="378.33" cy="-306" rx="77.96" ry="18"/>
+<text xml:space="preserve" text-anchor="middle" x="378.33" y="-302.7" font-family="Times,serif" font-size="9.00">DoorOpen &amp; Holding(Coffee)**</text>
+</g>
+<!-- Sequence***&#45;&gt;DoorOpen &amp; Holding(Coffee)** -->
+<g id="edge12" class="edge">
+<title>Sequence***&#45;&gt;DoorOpen &amp; Holding(Coffee)**</title>
+<path fill="none" stroke="black" d="M492.29,-361.64C471.4,-351.62 443.89,-338.43 421.14,-327.52"/>
+<polygon fill="black" stroke="black" points="422.95,-324.51 412.42,-323.34 419.93,-330.82 422.95,-324.51"/>
+</g>
+<!-- Move(Robot,Table) -->
+<g id="node14" class="node">
+<title>Move(Robot,Table)</title>
+<ellipse fill="gray" stroke="black" cx="524.33" cy="-306" rx="50.42" ry="18"/>
+<text xml:space="preserve" text-anchor="middle" x="524.33" y="-302.7" font-family="Times,serif" font-size="9.00">Move(Robot,Table)</text>
+</g>
+<!-- Sequence***&#45;&gt;Move(Robot,Table) -->
+<g id="edge13" class="edge">
+<title>Sequence***&#45;&gt;Move(Robot,Table)</title>
+<path fill="none" stroke="black" d="M524.33,-359.7C524.33,-352.41 524.33,-343.73 524.33,-335.54"/>
+<polygon fill="black" stroke="black" points="527.83,-335.62 524.33,-325.62 520.83,-335.62 527.83,-335.62"/>
+</g>
+<!-- Fallback*** -->
+<g id="node16" class="node">
+<title>Fallback***</title>
+<polygon fill="cyan" stroke="black" points="667.87,-298.54 667.87,-313.46 645.88,-324 614.78,-324 592.8,-313.46 592.8,-298.54 614.78,-288 645.88,-288 667.87,-298.54"/>
+<text xml:space="preserve" text-anchor="middle" x="630.33" y="-302.7" font-family="Times,serif" font-size="9.00">Fallback***</text>
+</g>
+<!-- Sequence****&#45;&gt;Fallback*** -->
+<g id="edge15" class="edge">
+<title>Sequence****&#45;&gt;Fallback***</title>
+<path fill="none" stroke="black" d="M630.33,-359.7C630.33,-352.41 630.33,-343.73 630.33,-335.54"/>
+<polygon fill="black" stroke="black" points="633.83,-335.62 630.33,-325.62 626.83,-335.62 633.83,-335.62"/>
+</g>
+<!-- OpenDoor* -->
+<g id="node21" class="node">
+<title>OpenDoor*</title>
+<ellipse fill="gray" stroke="black" cx="720.33" cy="-306" rx="34.24" ry="18"/>
+<text xml:space="preserve" text-anchor="middle" x="720.33" y="-302.7" font-family="Times,serif" font-size="9.00">OpenDoor*</text>
+</g>
+<!-- Sequence****&#45;&gt;OpenDoor* -->
+<g id="edge20" class="edge">
+<title>Sequence****&#45;&gt;OpenDoor*</title>
+<path fill="none" stroke="black" d="M652.58,-359.7C664.73,-350.25 679.88,-338.47 692.77,-328.44"/>
+<polygon fill="black" stroke="black" points="694.74,-331.34 700.49,-322.44 690.44,-325.81 694.74,-331.34"/>
+</g>
+<!-- HandEmpty &amp; Holding(Coffee) -->
+<g id="node17" class="node">
+<title>HandEmpty &amp; Holding(Coffee)</title>
+<ellipse fill="gray" stroke="black" cx="501.33" cy="-234" rx="75.33" ry="18"/>
+<text xml:space="preserve" text-anchor="middle" x="501.33" y="-230.7" font-family="Times,serif" font-size="9.00">HandEmpty &amp; Holding(Coffee)</text>
+</g>
+<!-- Fallback***&#45;&gt;HandEmpty &amp; Holding(Coffee) -->
+<g id="edge16" class="edge">
+<title>Fallback***&#45;&gt;HandEmpty &amp; Holding(Coffee)</title>
+<path fill="none" stroke="black" d="M606.07,-291.83C587.63,-281.83 561.88,-267.86 540.53,-256.27"/>
+<polygon fill="black" stroke="black" points="542.25,-253.22 531.79,-251.53 538.91,-259.37 542.25,-253.22"/>
+</g>
+<!-- Sequence***** -->
+<g id="node18" class="node">
+<title>Sequence*****</title>
+<polygon fill="orange" stroke="black" points="666.46,-252 594.21,-252 594.21,-216 666.46,-216 666.46,-252"/>
+<text xml:space="preserve" text-anchor="middle" x="630.33" y="-230.7" font-family="Times,serif" font-size="9.00">Sequence*****</text>
+</g>
+<!-- Fallback***&#45;&gt;Sequence***** -->
+<g id="edge17" class="edge">
+<title>Fallback***&#45;&gt;Sequence*****</title>
+<path fill="none" stroke="black" d="M630.33,-287.7C630.33,-280.41 630.33,-271.73 630.33,-263.54"/>
+<polygon fill="black" stroke="black" points="633.83,-263.62 630.33,-253.62 626.83,-263.62 633.83,-263.62"/>
+</g>
+<!-- HandEmpty &amp; Holding(Coffee)* -->
+<g id="node19" class="node">
+<title>HandEmpty &amp; Holding(Coffee)*</title>
+<ellipse fill="gray" stroke="black" cx="560.33" cy="-162" rx="77.96" ry="18"/>
+<text xml:space="preserve" text-anchor="middle" x="560.33" y="-158.7" font-family="Times,serif" font-size="9.00">HandEmpty &amp; Holding(Coffee)*</text>
+</g>
+<!-- Sequence*****&#45;&gt;HandEmpty &amp; Holding(Coffee)* -->
+<g id="edge18" class="edge">
+<title>Sequence*****&#45;&gt;HandEmpty &amp; Holding(Coffee)*</title>
+<path fill="none" stroke="black" d="M613.03,-215.7C604.6,-207.27 594.31,-196.97 585.07,-187.73"/>
+<polygon fill="black" stroke="black" points="587.57,-185.29 578.03,-180.69 582.62,-190.24 587.57,-185.29"/>
+</g>
+<!-- OpenDoor -->
+<g id="node20" class="node">
+<title>OpenDoor</title>
+<ellipse fill="gray" stroke="black" cx="688.33" cy="-162" rx="31.62" ry="18"/>
+<text xml:space="preserve" text-anchor="middle" x="688.33" y="-158.7" font-family="Times,serif" font-size="9.00">OpenDoor</text>
+</g>
+<!-- Sequence*****&#45;&gt;OpenDoor -->
+<g id="edge19" class="edge">
+<title>Sequence*****&#45;&gt;OpenDoor</title>
+<path fill="none" stroke="black" d="M644.67,-215.7C651.71,-207.19 660.33,-196.8 668.03,-187.5"/>
+<polygon fill="black" stroke="black" points="670.7,-189.77 674.38,-179.84 665.31,-185.3 670.7,-189.77"/>
+</g>
+<!-- Fallback**** -->
+<g id="node23" class="node">
+<title>Fallback****</title>
+<polygon fill="cyan" stroke="black" points="853.71,-298.54 853.71,-313.46 830.06,-324 796.61,-324 772.96,-313.46 772.96,-298.54 796.61,-288 830.06,-288 853.71,-298.54"/>
+<text xml:space="preserve" text-anchor="middle" x="813.33" y="-302.7" font-family="Times,serif" font-size="9.00">Fallback****</text>
+</g>
+<!-- Sequence******&#45;&gt;Fallback**** -->
+<g id="edge22" class="edge">
+<title>Sequence******&#45;&gt;Fallback****</title>
+<path fill="none" stroke="black" d="M777.95,-359.7C783.24,-351.81 789.63,-342.3 795.51,-333.55"/>
+<polygon fill="black" stroke="black" points="798.34,-335.61 801.01,-325.36 792.52,-331.71 798.34,-335.61"/>
+</g>
+<!-- BrewCoffee -->
+<g id="node41" class="node">
+<title>BrewCoffee</title>
+<ellipse fill="gray" stroke="black" cx="906.33" cy="-306" rx="34.68" ry="18"/>
+<text xml:space="preserve" text-anchor="middle" x="906.33" y="-302.7" font-family="Times,serif" font-size="9.00">BrewCoffee</text>
+</g>
+<!-- Sequence******&#45;&gt;BrewCoffee -->
+<g id="edge40" class="edge">
+<title>Sequence******&#45;&gt;BrewCoffee</title>
+<path fill="none" stroke="black" d="M801.3,-359.52C822.78,-348.78 850.19,-335.07 871.62,-324.36"/>
+<polygon fill="black" stroke="black" points="873.18,-327.49 880.56,-319.89 870.05,-321.23 873.18,-327.49"/>
+</g>
+<!-- At(Robot,Machine) &amp; DoorOpen &amp; HandEmpty -->
+<g id="node24" class="node">
+<title>At(Robot,Machine) &amp; DoorOpen &amp; HandEmpty</title>
+<ellipse fill="gray" stroke="black" cx="794.33" cy="-234" rx="110.3" ry="18"/>
+<text xml:space="preserve" text-anchor="middle" x="794.33" y="-230.7" font-family="Times,serif" font-size="9.00">At(Robot,Machine) &amp; DoorOpen &amp; HandEmpty</text>
+</g>
+<!-- Fallback****&#45;&gt;At(Robot,Machine) &amp; DoorOpen &amp; HandEmpty -->
+<g id="edge23" class="edge">
+<title>Fallback****&#45;&gt;At(Robot,Machine) &amp; DoorOpen &amp; HandEmpty</title>
+<path fill="none" stroke="black" d="M808.64,-287.7C806.61,-280.24 804.19,-271.32 801.92,-262.97"/>
+<polygon fill="black" stroke="black" points="805.37,-262.3 799.37,-253.57 798.61,-264.13 805.37,-262.3"/>
+</g>
+<!-- Sequence******* -->
+<g id="node25" class="node">
+<title>Sequence*******</title>
+<polygon fill="orange" stroke="black" points="1003.96,-252 922.71,-252 922.71,-216 1003.96,-216 1003.96,-252"/>
+<text xml:space="preserve" text-anchor="middle" x="963.33" y="-230.7" font-family="Times,serif" font-size="9.00">Sequence*******</text>
+</g>
+<!-- Fallback****&#45;&gt;Sequence******* -->
+<g id="edge24" class="edge">
+<title>Fallback****&#45;&gt;Sequence*******</title>
+<path fill="none" stroke="black" d="M840.5,-292.32C861.4,-282.57 890.82,-268.84 915.62,-257.26"/>
+<polygon fill="black" stroke="black" points="916.98,-260.49 924.56,-253.09 914.02,-254.15 916.98,-260.49"/>
+</g>
+<!-- Sequence*********** -->
+<g id="node38" class="node">
+<title>Sequence***********</title>
+<polygon fill="orange" stroke="black" points="1174.96,-252 1075.71,-252 1075.71,-216 1174.96,-216 1174.96,-252"/>
+<text xml:space="preserve" text-anchor="middle" x="1125.33" y="-230.7" font-family="Times,serif" font-size="9.00">Sequence***********</text>
+</g>
+<!-- Fallback****&#45;&gt;Sequence*********** -->
+<g id="edge37" class="edge">
+<title>Fallback****&#45;&gt;Sequence***********</title>
+<path fill="none" stroke="black" d="M843.72,-293.75C849.83,-291.68 856.25,-289.66 862.33,-288 930.71,-269.34 1010.73,-254.14 1064.39,-244.87"/>
+<polygon fill="black" stroke="black" points="1064.66,-248.38 1073.93,-243.24 1063.48,-241.48 1064.66,-248.38"/>
+</g>
+<!-- Fallback***** -->
+<g id="node26" class="node">
+<title>Fallback*****</title>
+<polygon fill="cyan" stroke="black" points="883.55,-154.54 883.55,-169.46 858.23,-180 822.43,-180 797.12,-169.46 797.12,-154.54 822.43,-144 858.23,-144 883.55,-154.54"/>
+<text xml:space="preserve" text-anchor="middle" x="840.33" y="-158.7" font-family="Times,serif" font-size="9.00">Fallback*****</text>
+</g>
+<!-- Sequence*******&#45;&gt;Fallback***** -->
+<g id="edge25" class="edge">
+<title>Sequence*******&#45;&gt;Fallback*****</title>
+<path fill="none" stroke="black" d="M932.61,-215.52C915.16,-205.59 893.26,-193.12 875.17,-182.83"/>
+<polygon fill="black" stroke="black" points="877.03,-179.86 866.61,-177.96 873.57,-185.94 877.03,-179.86"/>
+</g>
+<!-- Move(Robot,Machine)** -->
+<g id="node37" class="node">
+<title>Move(Robot,Machine)**</title>
+<ellipse fill="gray" stroke="black" cx="963.33" cy="-162" rx="62.22" ry="18"/>
+<text xml:space="preserve" text-anchor="middle" x="963.33" y="-158.7" font-family="Times,serif" font-size="9.00">Move(Robot,Machine)**</text>
+</g>
+<!-- Sequence*******&#45;&gt;Move(Robot,Machine)** -->
+<g id="edge36" class="edge">
+<title>Sequence*******&#45;&gt;Move(Robot,Machine)**</title>
+<path fill="none" stroke="black" d="M963.33,-215.7C963.33,-208.41 963.33,-199.73 963.33,-191.54"/>
+<polygon fill="black" stroke="black" points="966.83,-191.62 963.33,-181.62 959.83,-191.62 966.83,-191.62"/>
+</g>
+<!-- DoorOpen &amp; HandEmpty -->
+<g id="node27" class="node">
+<title>DoorOpen &amp; HandEmpty</title>
+<ellipse fill="gray" stroke="black" cx="653.33" cy="-90" rx="63.09" ry="18"/>
+<text xml:space="preserve" text-anchor="middle" x="653.33" y="-86.7" font-family="Times,serif" font-size="9.00">DoorOpen &amp; HandEmpty</text>
+</g>
+<!-- Fallback*****&#45;&gt;DoorOpen &amp; HandEmpty -->
+<g id="edge26" class="edge">
+<title>Fallback*****&#45;&gt;DoorOpen &amp; HandEmpty</title>
+<path fill="none" stroke="black" d="M809.03,-149.28C779.57,-138.26 735.04,-121.58 701.13,-108.89"/>
+<polygon fill="black" stroke="black" points="702.54,-105.68 691.95,-105.46 700.09,-112.24 702.54,-105.68"/>
+</g>
+<!-- Sequence******** -->
+<g id="node28" class="node">
+<title>Sequence********</title>
+<polygon fill="orange" stroke="black" points="820.21,-108 734.46,-108 734.46,-72 820.21,-72 820.21,-108"/>
+<text xml:space="preserve" text-anchor="middle" x="777.33" y="-86.7" font-family="Times,serif" font-size="9.00">Sequence********</text>
+</g>
+<!-- Fallback*****&#45;&gt;Sequence******** -->
+<g id="edge27" class="edge">
+<title>Fallback*****&#45;&gt;Sequence********</title>
+<path fill="none" stroke="black" d="M824.76,-143.7C817.36,-135.47 808.37,-125.48 800.21,-116.42"/>
+<polygon fill="black" stroke="black" points="803.03,-114.32 793.74,-109.23 797.83,-119 803.03,-114.32"/>
+</g>
+<!-- Sequence********* -->
+<g id="node31" class="node">
+<title>Sequence*********</title>
+<polygon fill="orange" stroke="black" points="948.46,-108 858.21,-108 858.21,-72 948.46,-72 948.46,-108"/>
+<text xml:space="preserve" text-anchor="middle" x="903.33" y="-86.7" font-family="Times,serif" font-size="9.00">Sequence*********</text>
+</g>
+<!-- Fallback*****&#45;&gt;Sequence********* -->
+<g id="edge30" class="edge">
+<title>Fallback*****&#45;&gt;Sequence*********</title>
+<path fill="none" stroke="black" d="M855.91,-143.7C863.31,-135.47 872.3,-125.48 880.45,-116.42"/>
+<polygon fill="black" stroke="black" points="882.84,-119 886.93,-109.23 877.64,-114.32 882.84,-119"/>
+</g>
+<!-- Sequence********** -->
+<g id="node34" class="node">
+<title>Sequence**********</title>
+<polygon fill="orange" stroke="black" points="1194.71,-108 1099.96,-108 1099.96,-72 1194.71,-72 1194.71,-108"/>
+<text xml:space="preserve" text-anchor="middle" x="1147.33" y="-86.7" font-family="Times,serif" font-size="9.00">Sequence**********</text>
+</g>
+<!-- Fallback*****&#45;&gt;Sequence********** -->
+<g id="edge33" class="edge">
+<title>Fallback*****&#45;&gt;Sequence**********</title>
+<path fill="none" stroke="black" d="M872.9,-149.74C879.3,-147.7 886,-145.69 892.33,-144 958.89,-126.26 1036.52,-110.87 1088.49,-101.31"/>
+<polygon fill="black" stroke="black" points="1088.8,-104.81 1098.01,-99.57 1087.54,-97.92 1088.8,-104.81"/>
+</g>
+<!-- DoorOpen &amp; HandEmpty* -->
+<g id="node29" class="node">
+<title>DoorOpen &amp; HandEmpty*</title>
+<ellipse fill="gray" stroke="black" cx="614.33" cy="-18" rx="65.72" ry="18"/>
+<text xml:space="preserve" text-anchor="middle" x="614.33" y="-14.7" font-family="Times,serif" font-size="9.00">DoorOpen &amp; HandEmpty*</text>
+</g>
+<!-- Sequence********&#45;&gt;DoorOpen &amp; HandEmpty* -->
+<g id="edge28" class="edge">
+<title>Sequence********&#45;&gt;DoorOpen &amp; HandEmpty*</title>
+<path fill="none" stroke="black" d="M736.62,-71.52C713.05,-61.39 683.34,-48.63 659.11,-38.23"/>
+<polygon fill="black" stroke="black" points="660.71,-35.11 650.14,-34.38 657.94,-41.54 660.71,-35.11"/>
+</g>
+<!-- Move(Robot,Machine)* -->
+<g id="node30" class="node">
+<title>Move(Robot,Machine)*</title>
+<ellipse fill="gray" stroke="black" cx="757.33" cy="-18" rx="59.6" ry="18"/>
+<text xml:space="preserve" text-anchor="middle" x="757.33" y="-14.7" font-family="Times,serif" font-size="9.00">Move(Robot,Machine)*</text>
+</g>
+<!-- Sequence********&#45;&gt;Move(Robot,Machine)* -->
+<g id="edge29" class="edge">
+<title>Sequence********&#45;&gt;Move(Robot,Machine)*</title>
+<path fill="none" stroke="black" d="M772.39,-71.7C770.26,-64.24 767.71,-55.32 765.32,-46.97"/>
+<polygon fill="black" stroke="black" points="768.75,-46.21 762.64,-37.56 762.02,-48.14 768.75,-46.21"/>
+</g>
+<!-- DoorOpen &amp; HandEmpty** -->
+<g id="node32" class="node">
+<title>DoorOpen &amp; HandEmpty**</title>
+<ellipse fill="gray" stroke="black" cx="903.33" cy="-18" rx="68.34" ry="18"/>
+<text xml:space="preserve" text-anchor="middle" x="903.33" y="-14.7" font-family="Times,serif" font-size="9.00">DoorOpen &amp; HandEmpty**</text>
+</g>
+<!-- Sequence*********&#45;&gt;DoorOpen &amp; HandEmpty** -->
+<g id="edge31" class="edge">
+<title>Sequence*********&#45;&gt;DoorOpen &amp; HandEmpty**</title>
+<path fill="none" stroke="black" d="M903.33,-71.7C903.33,-64.41 903.33,-55.73 903.33,-47.54"/>
+<polygon fill="black" stroke="black" points="906.83,-47.62 903.33,-37.62 899.83,-47.62 906.83,-47.62"/>
+</g>
+<!-- Move(Robot,Table)* -->
+<g id="node33" class="node">
+<title>Move(Robot,Table)*</title>
+<ellipse fill="gray" stroke="black" cx="1042.33" cy="-18" rx="53.04" ry="18"/>
+<text xml:space="preserve" text-anchor="middle" x="1042.33" y="-14.7" font-family="Times,serif" font-size="9.00">Move(Robot,Table)*</text>
+</g>
+<!-- Sequence*********&#45;&gt;Move(Robot,Table)* -->
+<g id="edge32" class="edge">
+<title>Sequence*********&#45;&gt;Move(Robot,Table)*</title>
+<path fill="none" stroke="black" d="M938.05,-71.52C957.91,-61.52 982.87,-48.95 1003.39,-38.61"/>
+<polygon fill="black" stroke="black" points="1004.96,-41.74 1012.32,-34.12 1001.81,-35.49 1004.96,-41.74"/>
+</g>
+<!-- HandEmpty -->
+<g id="node35" class="node">
+<title>HandEmpty</title>
+<ellipse fill="gray" stroke="black" cx="1147.33" cy="-18" rx="34.24" ry="18"/>
+<text xml:space="preserve" text-anchor="middle" x="1147.33" y="-14.7" font-family="Times,serif" font-size="9.00">HandEmpty</text>
+</g>
+<!-- Sequence**********&#45;&gt;HandEmpty -->
+<g id="edge34" class="edge">
+<title>Sequence**********&#45;&gt;HandEmpty</title>
+<path fill="none" stroke="black" d="M1147.33,-71.7C1147.33,-64.41 1147.33,-55.73 1147.33,-47.54"/>
+<polygon fill="black" stroke="black" points="1150.83,-47.62 1147.33,-37.62 1143.83,-47.62 1150.83,-47.62"/>
+</g>
+<!-- OpenDoor** -->
+<g id="node36" class="node">
+<title>OpenDoor**</title>
+<ellipse fill="gray" stroke="black" cx="1236.33" cy="-18" rx="36.87" ry="18"/>
+<text xml:space="preserve" text-anchor="middle" x="1236.33" y="-14.7" font-family="Times,serif" font-size="9.00">OpenDoor**</text>
+</g>
+<!-- Sequence**********&#45;&gt;OpenDoor** -->
+<g id="edge35" class="edge">
+<title>Sequence**********&#45;&gt;OpenDoor**</title>
+<path fill="none" stroke="black" d="M1169.33,-71.7C1181.26,-62.31 1196.12,-50.63 1208.81,-40.65"/>
+<polygon fill="black" stroke="black" points="1210.71,-43.61 1216.4,-34.67 1206.38,-38.11 1210.71,-43.61"/>
+</g>
+<!-- At(Robot,Machine) &amp; HandEmpty -->
+<g id="node39" class="node">
+<title>At(Robot,Machine) &amp; HandEmpty</title>
+<ellipse fill="gray" stroke="black" cx="1125.33" cy="-162" rx="81.45" ry="18"/>
+<text xml:space="preserve" text-anchor="middle" x="1125.33" y="-158.7" font-family="Times,serif" font-size="9.00">At(Robot,Machine) &amp; HandEmpty</text>
+</g>
+<!-- Sequence***********&#45;&gt;At(Robot,Machine) &amp; HandEmpty -->
+<g id="edge38" class="edge">
+<title>Sequence***********&#45;&gt;At(Robot,Machine) &amp; HandEmpty</title>
+<path fill="none" stroke="black" d="M1125.33,-215.7C1125.33,-208.41 1125.33,-199.73 1125.33,-191.54"/>
+<polygon fill="black" stroke="black" points="1128.83,-191.62 1125.33,-181.62 1121.83,-191.62 1128.83,-191.62"/>
+</g>
+<!-- OpenDoor*** -->
+<g id="node40" class="node">
+<title>OpenDoor***</title>
+<ellipse fill="gray" stroke="black" cx="1264.33" cy="-162" rx="39.49" ry="18"/>
+<text xml:space="preserve" text-anchor="middle" x="1264.33" y="-158.7" font-family="Times,serif" font-size="9.00">OpenDoor***</text>
+</g>
+<!-- Sequence***********&#45;&gt;OpenDoor*** -->
+<g id="edge39" class="edge">
+<title>Sequence***********&#45;&gt;OpenDoor***</title>
+<path fill="none" stroke="black" d="M1160.05,-215.52C1180.96,-204.99 1207.54,-191.6 1228.62,-180.98"/>
+<polygon fill="black" stroke="black" points="1230.08,-184.17 1237.44,-176.55 1226.93,-177.92 1230.08,-184.17"/>
+</g>
+<!-- Fallback****** -->
+<g id="node44" class="node">
+<title>Fallback******</title>
+<polygon fill="cyan" stroke="black" points="990.39,-442.54 990.39,-457.46 963.41,-468 925.26,-468 898.28,-457.46 898.28,-442.54 925.26,-432 963.41,-432 990.39,-442.54"/>
+<text xml:space="preserve" text-anchor="middle" x="944.33" y="-446.7" font-family="Times,serif" font-size="9.00">Fallback******</text>
+</g>
+<!-- Sequence************&#45;&gt;Fallback****** -->
+<g id="edge43" class="edge">
+<title>Sequence************&#45;&gt;Fallback******</title>
+<path fill="none" stroke="black" d="M944.33,-503.7C944.33,-496.41 944.33,-487.73 944.33,-479.54"/>
+<polygon fill="black" stroke="black" points="947.83,-479.62 944.33,-469.62 940.83,-479.62 947.83,-479.62"/>
+</g>
+<!-- BrewCoffee* -->
+<g id="node49" class="node">
+<title>BrewCoffee*</title>
+<ellipse fill="gray" stroke="black" cx="1045.33" cy="-450" rx="37.3" ry="18"/>
+<text xml:space="preserve" text-anchor="middle" x="1045.33" y="-446.7" font-family="Times,serif" font-size="9.00">BrewCoffee*</text>
+</g>
+<!-- Sequence************&#45;&gt;BrewCoffee* -->
+<g id="edge48" class="edge">
+<title>Sequence************&#45;&gt;BrewCoffee*</title>
+<path fill="none" stroke="black" d="M969.56,-503.52C983.46,-493.88 1000.8,-481.86 1015.38,-471.76"/>
+<polygon fill="black" stroke="black" points="1017.04,-474.87 1023.26,-466.3 1013.05,-469.12 1017.04,-474.87"/>
+</g>
+<!-- At(Robot,Machine) &amp; At(Robot,Table) &amp; HandEmpty -->
+<g id="node45" class="node">
+<title>At(Robot,Machine) &amp; At(Robot,Table) &amp; HandEmpty</title>
+<ellipse fill="gray" stroke="black" cx="944.33" cy="-378" rx="121.67" ry="18"/>
+<text xml:space="preserve" text-anchor="middle" x="944.33" y="-374.7" font-family="Times,serif" font-size="9.00">At(Robot,Machine) &amp; At(Robot,Table) &amp; HandEmpty</text>
+</g>
+<!-- Fallback******&#45;&gt;At(Robot,Machine) &amp; At(Robot,Table) &amp; HandEmpty -->
+<g id="edge44" class="edge">
+<title>Fallback******&#45;&gt;At(Robot,Machine) &amp; At(Robot,Table) &amp; HandEmpty</title>
+<path fill="none" stroke="black" d="M944.33,-431.7C944.33,-424.41 944.33,-415.73 944.33,-407.54"/>
+<polygon fill="black" stroke="black" points="947.83,-407.62 944.33,-397.62 940.83,-407.62 947.83,-407.62"/>
+</g>
+<!-- Sequence************* -->
+<g id="node46" class="node">
+<title>Sequence*************</title>
+<polygon fill="orange" stroke="black" points="1192.46,-396 1084.21,-396 1084.21,-360 1192.46,-360 1192.46,-396"/>
+<text xml:space="preserve" text-anchor="middle" x="1138.33" y="-374.7" font-family="Times,serif" font-size="9.00">Sequence*************</text>
+</g>
+<!-- Fallback******&#45;&gt;Sequence************* -->
+<g id="edge45" class="edge">
+<title>Fallback******&#45;&gt;Sequence*************</title>
+<path fill="none" stroke="black" d="M977.24,-437.13C1005.14,-427.06 1045.84,-412.37 1079.35,-400.28"/>
+<polygon fill="black" stroke="black" points="1080.31,-403.66 1088.53,-396.97 1077.94,-397.07 1080.31,-403.66"/>
+</g>
+<!-- At(Robot,Machine) &amp; At(Robot,Table) &amp; HandEmpty* -->
+<g id="node47" class="node">
+<title>At(Robot,Machine) &amp; At(Robot,Table) &amp; HandEmpty*</title>
+<ellipse fill="gray" stroke="black" cx="1111.33" cy="-306" rx="124.29" ry="18"/>
+<text xml:space="preserve" text-anchor="middle" x="1111.33" y="-302.7" font-family="Times,serif" font-size="9.00">At(Robot,Machine) &amp; At(Robot,Table) &amp; HandEmpty*</text>
+</g>
+<!-- Sequence*************&#45;&gt;At(Robot,Machine) &amp; At(Robot,Table) &amp; HandEmpty* -->
+<g id="edge46" class="edge">
+<title>Sequence*************&#45;&gt;At(Robot,Machine) &amp; At(Robot,Table) &amp; HandEmpty*</title>
+<path fill="none" stroke="black" d="M1131.66,-359.7C1128.75,-352.15 1125.26,-343.12 1122.01,-334.68"/>
+<polygon fill="black" stroke="black" points="1125.34,-333.59 1118.48,-325.52 1118.81,-336.11 1125.34,-333.59"/>
+</g>
+<!-- OpenDoor**** -->
+<g id="node48" class="node">
+<title>OpenDoor****</title>
+<ellipse fill="gray" stroke="black" cx="1295.33" cy="-306" rx="42.11" ry="18"/>
+<text xml:space="preserve" text-anchor="middle" x="1295.33" y="-302.7" font-family="Times,serif" font-size="9.00">OpenDoor****</text>
+</g>
+<!-- Sequence*************&#45;&gt;OpenDoor**** -->
+<g id="edge47" class="edge">
+<title>Sequence*************&#45;&gt;OpenDoor****</title>
+<path fill="none" stroke="black" d="M1177.55,-359.52C1201.76,-348.72 1232.68,-334.93 1256.77,-324.19"/>
+<polygon fill="black" stroke="black" points="1257.88,-327.53 1265.59,-320.26 1255.03,-321.14 1257.88,-327.53"/>
+</g>
+</g>
+</svg>
+    </div>
+    <figcaption>
+      上图就是 <code>btplan draw</code> 的真实输出（可左右滚动查看）。
+      Fallback = 选择节点，Sequence = 顺序节点，绿色 = 条件，橙色 = 动作。
+    </figcaption>
+  </figure>
+
+  <h3>新任务接入检查清单</h3>
+  <table>
+    <tr><th style="width:210px">症状</th><th>先查什么</th></tr>
+    <tr><td>抛 <code>PlanningFailure</code></td><td>goal 里的文字是否有动作的 <code>add</code> 能产出它</td></tr>
+    <tr><td>树生成了但跑不通</td><td>动作的 <code>del_set</code> 是否漏删了同谓词其他取值</td></tr>
+    <tr><td>执行顺序很奇怪</td><td>正常：树是响应式的，每拍重新选分支；想按代价走要换最优搜索</td></tr>
+    <tr><td>状态自相矛盾</td><td>加 <code>conflict_check</code>，把互斥文字组合剪掉</td></tr>
+    <tr><td>一拍做完所有动作</td><td>正常：默认动作一步到位；要分步请让 <code>update()</code> 返回 RUNNING</td></tr>
+  </table>
+</section>
+
+<!-- ===================== 5 Demo 逐 tick ===================== -->
+<section id="demo-tick">
+  <h2><span class="num">5</span>Demo：逐 tick 看 py_trees 怎么执行</h2>
+  <p class="lead-sec">
+    下面是真实可运行的执行模型：点"下一拍"，看 py_trees 如何从根走到某个动作、
+    动作如何改变状态、下一拍又如何重新判断。<strong>注意"一步到位"与"分步（RUNNING）"两种动作语义的差别。</strong>
+  </p>
+
+  <div class="demo">
+    <div class="demo-head">
+      <div>
+        <div class="t">MoveBtoB：把 b 搬到 ab（先把挡路的 s 挪开）</div>
+        <div class="hint">目标 <code>At(b,ab)</code> · 初始状态见右侧</div>
+      </div>
+      <div class="controls">
+        <button id="tick-mode" class="primary">⇄ 动作语义：一步到位</button>
+      </div>
+    </div>
+    <div class="demo-body">
+      <div class="demo-stage">
+        <div class="controls">
+          <button id="btn-tick" class="primary">下一拍 tick ▶</button>
+          <button id="btn-reset">↺ 重置</button>
+          <span class="stepbar">第 <b id="tick-no">0</b> 拍</span>
+        </div>
+        <div class="tree" id="tree-a"></div>
+        <div class="legend">
+          <span><i style="background:#5a34c4"></i>Fallback</span>
+          <span><i style="background:#15468f"></i>Sequence</span>
+          <span><i style="background:#066b3a"></i>条件</span>
+          <span><i style="background:#9c4f12"></i>动作</span>
+          <span>深色 = 本拍实际走过；浅色 = 未访问</span>
+        </div>
+      </div>
+      <div class="demo-side">
+        <div class="side-h">当前状态</div>
+        <div class="chips" id="state-a"></div>
+        <div class="side-h">执行日志</div>
+        <div class="log" id="log-a"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="note">
+    两种语义：<strong>一步到位</strong>的动作在一次 tick 内做完并返回 SUCCESS，所以一拍可能连做几个动作；
+    <strong>分步（RUNNING）</strong>的动作一次 tick 只推进一步并返回 RUNNING，整棵树停在那里等下一拍——
+    真实机器人（导航、机械臂）都是后者。
+  </div>
+</section>
+
+<!-- ===================== 5 核心算法 ===================== -->
+<section id="algo">
+  <h2><span class="num">6</span>核心算法</h2>
+  <p class="lead-sec">
+    一句话：<strong>从目标出发反向扩展，直到这棵树能从初始状态跑起来。</strong>
+  </p>
+
+  <figure>
+    <svg viewBox="0 0 900 200" role="img" aria-label="反向扩展示意">
+      <defs><marker id="ar2" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+        <path d="M0,0 L9,4.5 L0,9 z" fill="#9aa4b0"/></marker></defs>
+      <rect x="20" y="60" width="180" height="70" rx="10" fill="#eefaf2" stroke="#066b3a"/>
+      <text x="110" y="88" text-anchor="middle" font-size="14" fill="#066b3a" font-family="monospace" font-weight="600">目标 c</text>
+      <text x="110" y="112" text-anchor="middle" font-size="12" fill="#3d4652">At(b,ab)</text>
+
+      <line x1="200" y1="95" x2="290" y2="95" stroke="#9aa4b0" marker-end="url(#ar2)"/>
+      <text x="245" y="84" text-anchor="middle" font-size="12" fill="#3d4652">反向问：</text>
+      <text x="245" y="122" text-anchor="middle" font-size="12" fill="#3d4652">谁能产出它？</text>
+
+      <rect x="290" y="46" width="220" height="98" rx="10" fill="#fff" stroke="#e4e8ec"/>
+      <text x="400" y="72" text-anchor="middle" font-size="13" fill="#1f2328">对候选动作 a 算</text>
+      <text x="400" y="96" text-anchor="middle" font-size="13" font-family="monospace" fill="#b8500f" font-weight="600">c_attr = (pre ∪ c) − add</text>
+      <text x="400" y="122" text-anchor="middle" font-size="12" fill="#3d4652">= 动作前提 + 未达成部分</text>
+
+      <line x1="510" y1="95" x2="596" y2="95" stroke="#9aa4b0" marker-end="url(#ar2)"/>
+
+      <rect x="596" y="34" width="284" height="132" rx="10" fill="#f6f3ff" stroke="#5a34c4"/>
+      <text x="738" y="60" text-anchor="middle" font-size="13" fill="#5a34c4">长出的分支</text>
+      <text x="738" y="84" text-anchor="middle" font-size="13" font-family="monospace" font-weight="600">sequence{ cond c_attr</text>
+      <text x="738" y="108" text-anchor="middle" font-size="13" font-family="monospace" font-weight="600">           act a }</text>
+      <text x="738" y="140" text-anchor="middle" font-size="12" fill="#3d4652">c_attr 作为新条件，以后继续扩展</text>
+    </svg>
+    <figcaption>一次扩展做了什么：把"条件 c"替换成"selector{ c 已成立, 各条 sequence 分支 }"。</figcaption>
+  </figure>
+
+  <h3>三条判据</h3>
+  <div class="grid">
+    <div class="card">
+      <h4>① 能产出 c 吗</h4>
+      <p><code>c ∩ ((pre ∪ add) − del) ≠ ∅</code><br>且 <code>c − del = c</code>（不删 c 里的文字）</p>
+    </div>
+    <div class="card">
+      <h4>② 新前提是什么</h4>
+      <p><code>c_attr = (pre ∪ c) − add</code><br>即"动作前提 + 还没达成的目标部分"</p>
+    </div>
+    <div class="card">
+      <h4>③ 要不要剪掉</h4>
+      <p>若已扩展过的条件是 <code>c_attr</code> 的子集，说明这条路已被更宽的条件覆盖 → 剪掉</p>
+    </div>
+  </div>
+
+  <h3>主循环</h3>
+  <pre>树 = 条件结点(goal)
+<span class="k">while</span> 树还不能从 start 跑起来:              <span class="c"># 符号求值 can_run()</span>
+    挑一个还没扩展过的条件结点 c            <span class="c"># 按长出顺序，广度优先</span>
+    <span class="k">if</span> c != goal 且 c ⊆ start: <span class="k">break</span>        <span class="c"># 已被初始状态满足</span>
+    <span class="k">for</span> 每个"能产出 c"的动作 a:               <span class="c"># 三条判据</span>
+        挂一条分支：sequence{ cond c_attr, act a }
+    把 c 原地"长成"：selector{ cond c, 上面那些分支 }</pre>
+
+  <h4>终止与失败</h4>
+  <table>
+    <tr><th>情况</th><th>行为</th></tr>
+    <tr><td>树能从 start 跑起来</td><td>正常返回</td></tr>
+    <tr><td>目标本来就被 start 满足</td><td>不做扩展，返回单点树</td></tr>
+    <tr><td>所有条件都扩展完仍跑不起来</td><td>抛 <code>PlanningFailure</code>（目标不可达）</td></tr>
+  </table>
+  <div class="note">
+    <strong>规划期不看代价</strong>：扩展顺序就是动作列表顺序（FIFO），<code>cost</code> 只在运行时累计。
+    想做"优先扩展便宜动作"，把待扩展队列换成按累计代价排序的优先堆即可（MRBTP 的 MAOBTP 思路）。
+  </div>
+
+  <h3 id="demo-expand">Demo：看一次完整的扩展过程</h3>
+  <p class="lead-sec">点"下一步"，看 <code>MoveBtoB</code> 的树是怎么一步步长出来的。</p>
+  <div class="demo">
+    <div class="demo-head">
+      <div>
+        <div class="t">扩展过程分步演示</div>
+        <div class="hint">动作：<code>Move(b,ab)</code> / <code>Move(s,ab)</code> / <code>Move(s,as)</code></div>
+      </div>
+      <div class="controls">
+        <button id="btn-prev">◀ 上一步</button>
+        <button id="btn-next" class="primary">下一步 ▶</button>
+        <span class="stepbar" id="dots"></span>
+      </div>
+    </div>
+    <div class="demo-body">
+      <div class="demo-stage">
+        <div class="tree" id="tree-b"></div>
+      </div>
+      <div class="demo-side">
+        <div class="side-h">这一步发生了什么</div>
+        <div id="cap-b" style="font-size:14px; color:#3d4652"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 6 架构 ===================== -->
+<section id="arch">
+  <h2><span class="num">7</span>项目架构</h2>
+  <p class="lead-sec">四层，一条数据流。规划算结构，IR 存结构，编译换语言，py_trees 负责跑。</p>
+
+  <figure>
+    <svg viewBox="0 0 900 470" role="img" aria-label="四层架构与数据流">
+      <g font-family="sans-serif">
+        <rect x="60" y="20" width="780" height="88" rx="12" fill="#eef4ff" stroke="#15468f"/>
+        <text x="84" y="52" font-size="15" font-weight="600" fill="#15468f">① 规划内核 · btplan.core</text>
+        <text x="84" y="76" font-size="13" fill="#3d4652">纯符号：动作模型 / 扩展判据 / 符号求值 / 搜索主循环　→　产出 IR 树</text>
+        <text x="84" y="96" font-size="12.5" fill="#3d4652">expander.py · evaluate.py · planner.py · action.py（不依赖 py_trees）</text>
+
+        <path d="M450 108 L450 140" stroke="#9aa4b0" stroke-width="2" marker-end="url(#ar2)"/>
+        <text x="462" y="130" font-size="12" fill="#3d4652">IR 树</text>
+
+        <rect x="60" y="140" width="780" height="88" rx="12" fill="#f6f3ff" stroke="#5a34c4"/>
+        <text x="84" y="172" font-size="15" font-weight="600" fill="#5a34c4">② 中间表示 · btplan.ir</text>
+        <text x="84" y="196" font-size="13" fill="#3d4652">纯数据结构：selector / sequence / condition / action　→　可序列化、可测试</text>
+        <text x="84" y="216" font-size="12.5" fill="#3d4652">node.py（BTNode）· serialize.py（to_ptml）</text>
+
+        <path d="M450 228 L450 260" stroke="#9aa4b0" stroke-width="2" marker-end="url(#ar2)"/>
+        <text x="462" y="250" font-size="12" fill="#3d4652">编译</text>
+
+        <rect x="60" y="260" width="780" height="88" rx="12" fill="#fff5ee" stroke="#9c4f12"/>
+        <text x="84" y="292" font-size="15" font-weight="600" fill="#9c4f12">③ 运行时 · btplan.runtime</text>
+        <text x="84" y="316" font-size="13" fill="#3d4652">py_trees 节点 / 行为库 / 编译器　→　Fallback·Sequence（memory=False）、条件与动作叶子</text>
+        <text x="84" y="336" font-size="12.5" fill="#3d4652">nodes.py · compiler.py · library.py · tree.py</text>
+
+        <path d="M450 348 L450 380" stroke="#9aa4b0" stroke-width="2" marker-end="url(#ar2)"/>
+        <text x="462" y="370" font-size="12" fill="#3d4652">tick</text>
+
+        <rect x="60" y="380" width="780" height="72" rx="12" fill="#eefaf2" stroke="#066b3a"/>
+        <text x="84" y="410" font-size="15" font-weight="600" fill="#066b3a">④ 环境 · btplan.env</text>
+        <text x="84" y="434" font-size="13" fill="#3d4652">持有状态、执行动作、驱动 tick 循环　→　SymbolicEnv / run() / Environment 协议</text>
+      </g>
+    </svg>
+    <figcaption>四层架构：上一层不知道下一层的存在，IR 是唯一的接口。</figcaption>
+  </figure>
+
+  <h3>目录</h3>
+  <pre>src/btplan/
+├── core/        规划内核：action / expander / evaluate / planner
+├── ir/          中间表示：BTNode + to_ptml
+├── runtime/     py_trees：nodes / compiler / library / tree / visitor
+├── env/         环境：symbolic / runner / protocol
+├── domains/     内置示例问题 + 随机问题生成器
+├── pddl/        PDDL 前端：parser / compat / grounding / cond_effects / runner
+├── tools/       benchmark
+├── cli.py       命令行 btplan plan|run|draw|bench
+└── pipeline.py  solve() 一键流水线
+examples/   01 运行时 → 02 全流程 → 03 PDDL → 04 自定义节点
+tests/      runtime / planner / pddl / tools（分层测试）
+docs/       01 架构 · 02 规划 · 03 运行时 · 04 PDDL · 05 术语</pre>
+
+  <h3>五条关键约定</h3>
+  <ol>
+    <li><b>规划期不碰 py_trees。</b>算法只在集合上做运算；py_trees 节点带父子指针与状态，不适合做"复制/替换"。</li>
+    <li><b>IR 单向。</b>只做 <code>IR → py_trees</code>、<code>IR → PTML</code>；<b>不要</b>反过来从 PTML 解析树。</li>
+    <li><b>控制节点固定 <code>memory=False</code>。</b>每个 tick 从根重新评估，这是响应式与 Sound/Complete 的前提。</li>
+    <li><b>状态只在环境里。</b>节点靠 <code>bind_env</code> 拿引用，自身不缓存状态。</li>
+    <li><b>文字统一用字符串。</b>状态里的文字就是条件节点的名字，类型必须一致。</li>
+  </ol>
+
+  <h3>我该改哪一层</h3>
+  <table>
+    <tr><th style="width:230px">需求</th><th>改哪里</th></tr>
+    <tr><td>换搜索策略（最优 / 启发式）</td><td><code>core/planner.py</code></td></tr>
+    <tr><td>加剪枝 / 冲突检测</td><td><code>core/expander.py</code>、<code>Planner(conflict_check=...)</code></td></tr>
+    <tr><td>换输出格式</td><td><code>ir/serialize.py</code></td></tr>
+    <tr><td>接真实机器人 / 模拟器</td><td>继承 <code>ConditionNode</code> / <code>ActionNode</code>，注册进行为库</td></tr>
+    <tr><td>改状态怎么存、动作怎么生效</td><td><code>env/symbolic.py</code> 或自定义环境</td></tr>
+    <tr><td>改 tick 循环的终止判据</td><td><code>env/runner.py</code></td></tr>
+  </table>
+</section>
+
+<!-- ===================== 7 自定义 ===================== -->
+<section id="custom">
+  <h2><span class="num">8</span>用户自定义方法</h2>
+  <p class="lead-sec">三种扩展方式，按侵入性从低到高：<b>自定义节点</b> → <b>行为库</b> → <b>自定义环境</b>。</p>
+
+  <h3 id="custom-node">7.1 自定义 Condition / Action</h3>
+  <p>继承 <code>ConditionNode</code> 或 <code>ActionNode</code>，只实现 <code>update()</code>。类名与文字同名即自动命中。</p>
+  <pre><span class="k">from</span> btplan <span class="k">import</span> ConditionNode, ActionNode, Status
+
+<span class="k">class</span> <span class="f">BeansLeft</span>(ConditionNode):
+    <span class="s">"""条件：读环境的真实计数器，而不是查文字。"""</span>
+    <span class="k">def</span> <span class="f">update</span>(self) -&gt; Status:
+        <span class="k">return</span> Status.SUCCESS <span class="k">if</span> self.env.beans &gt; <span class="n">0</span> <span class="k">else</span> Status.FAILURE
+
+<span class="k">class</span> <span class="f">Brew</span>(ActionNode):
+    <span class="s">"""动作：两拍完成——第一拍预热（RUNNING），第二拍出咖啡。"""</span>
+    <span class="k">def</span> <span class="f">initialise</span>(self):
+        self.heating = <span class="k">False</span>          <span class="c"># 每次从非 RUNNING 进入时重置</span>
+
+    <span class="k">def</span> <span class="f">update</span>(self) -&gt; Status:
+        <span class="k">if</span> <span class="k">not</span> self.heating:
+            self.heating = <span class="k">True</span>
+            <span class="k">return</span> Status.RUNNING
+        <span class="k">if</span> self.env.beans &lt;= <span class="n">0</span>:
+            <span class="k">return</span> Status.FAILURE
+        self.env.apply(self.literal)   <span class="c"># 改符号状态</span>
+        self.env.beans -= <span class="n">1</span>            <span class="c"># 改环境自己的状态</span>
+        <span class="k">return</span> Status.SUCCESS</pre>
+
+  <h4>注册进行为库</h4>
+  <pre><span class="k">from</span> btplan <span class="k">import</span> BehaviorLibrary, BehaviorTree, Planner, compile_tree
+
+library = BehaviorLibrary()
+library.register(BeansLeft)     <span class="c"># 文字 "BeansLeft"    → 你的类</span>
+library.register(Brew)          <span class="c"># 文字 "Brew(Coffee)" → 你的类</span>
+<span class="c"># 也可以一整个目录：library.load_from_directory("my_domain")</span>
+
+plan = Planner().plan(start, goal, actions)
+bt   = BehaviorTree(compile_tree(plan, library))   <span class="c"># ← 把库传给编译器</span>
+bt.bind_env(env)</pre>
+  <pre class="out">$ python examples/04_custom_domain.py
+--- tick 1 --- root=RUNNING
+condition HasCoffee: FAILURE
+condition BeansLeft &amp; CupReady: SUCCESS
+action Brew(Coffee): RUNNING
+--- tick 2 --- root=SUCCESS
+action Brew(Coffee): SUCCESS
+成功=True  状态=SUCCESS  tick=2  代价=1.0  动作=['Brew(Coffee)']  剩余咖啡豆：0
+
+（把 beans 设为 0 再跑：条件 BeansLeft 直接 FAILURE，树根本不会执行 Brew）</pre>
+  <div class="note">
+    没注册的类会<strong>自动退回默认语义</strong>（条件 = 文字是否在状态里；动作 = 前提满足则执行一步）。
+    所以可以只挑关键的几个节点自定义，其余保持零配置。
+  </div>
+
+  <h3 id="custom-env">7.2 自定义环境</h3>
+  <p>实现 <code>Environment</code> 协议的四个方法即可，行为树那边一个字都不用改：</p>
+  <pre><span class="k">class</span> <span class="f">Environment</span>(Protocol):
+    <span class="k">def</span> <span class="f">observe</span>(self) -&gt; Iterable[str]: ...          <span class="c"># 当前为真的文字</span>
+    <span class="k">def</span> <span class="f">satisfies</span>(self, goal) -&gt; bool: ...           <span class="c"># 目标是否达成</span>
+    <span class="k">def</span> <span class="f">is_applicable</span>(self, action_name) -&gt; bool: ... <span class="c"># 前提是否成立</span>
+    <span class="k">def</span> <span class="f">apply</span>(self, action_name) -&gt; <span class="k">None</span>: ...        <span class="c"># 执行一步</span>
+
+<span class="c"># 例：在符号状态之外维护自己的计数器</span>
+<span class="k">class</span> <span class="f">CoffeeShop</span>(SymbolicEnv):
+    <span class="k">def</span> <span class="f">__init__</span>(self, state, actions, beans=<span class="n">1</span>):
+        <span class="k">super</span>().__init__(state, actions)
+        self.beans = beans</pre>
+
+  <h3>7.3 冲突检测（剪掉物理上不可能的前提）</h3>
+  <pre><span class="k">def</span> <span class="f">conflict</span>(premise) -&gt; bool:          <span class="c"># 返回 True = 该前提不成立</span>
+    <span class="k">return</span> <span class="s">"Holding(Coffee)"</span> <span class="k">in</span> premise <span class="k">and</span> <span class="s">"Holding(Softdrink)"</span> <span class="k">in</span> premise
+
+Planner(conflict_check=conflict).plan(start, goal, actions)</pre>
+
+  <h3>7.4 自定义节点速查</h3>
+  <table>
+    <tr><th style="width:170px">想做什么</th><th>怎么做</th></tr>
+    <tr><td>读真实传感器</td><td>继承 <code>ConditionNode</code>，<code>update()</code> 里读 <code>self.env</code></td></tr>
+    <tr><td>多拍动作</td><td>继承 <code>ActionNode</code>，未完成返回 <code>RUNNING</code>，<code>initialise()</code> 里重置状态</td></tr>
+    <tr><td>用参数</td><td><code>Move("b","ab")</code> → <code>self.args = ("b","ab")</code>，节点名 <code>Move(b,ab)</code></td></tr>
+    <tr><td>整批接入</td><td><code>library.load_from_directory("my_domain")</code>（目录含 <code>Condition/</code>、<code>Action/</code>）</td></tr>
+  </table>
+</section>
+
+<!-- ===================== 8 测试与基准 ===================== -->
+<section id="verify">
+  <h2><span class="num">9</span>测试与基准</h2>
+  <pre>python tests/test_runtime.py    <span class="c"># 节点语义、tick 循环、RUNNING、失败分支</span>
+python tests/test_planner.py    <span class="c"># 树结构、可执行性、不可达报错、PTML</span>
+python tests/test_pddl.py       <span class="c"># PDDL 样例端到端（7 个）</span>
+python tests/test_tools.py      <span class="c"># 随机问题生成器 + benchmark</span>
+
+python scripts/benchmark.py --problems 100 --literals 12 --depth 8</pre>
+  <pre class="out">=========== benchmark ===========
+问题数      : 30
+成功        : 30  (成功率 100.0%)
+规划耗时    : 0.020s  (平均 0.0007s)
+扩展轮数    : 315  (平均 10.5)
+树节点总数  : 3130  (平均 104.3)
+动作总数    : 600  (平均 20.0)
+tick 总数   : 30  (平均 1.0)
+=================================</pre>
+  <div class="note">
+    随机问题的目标是"<strong>从 start 随机走一串动作后的末状态</strong>"，构造上必然可达，
+    所以成功率必须是 100% —— 一旦掉下来，就是算法或实现的 bug。
+  </div>
+</section>
+
+<!-- ===================== 9 FAQ ===================== -->
+<section id="faq">
+  <h2><span class="num">10</span>常见问题</h2>
+  <table>
+    <tr><th style="width:230px">现象</th><th>原因 / 处理</th></tr>
+    <tr><td>条件永远不成立</td><td>节点名与状态里的文字拼写不一致（文字统一用字符串）</td></tr>
+    <tr><td>卡在旧分支不换路</td><td>控制节点带了 memory（本项目已固定为 False，别改）</td></tr>
+    <tr><td><code>RuntimeError: 还没有绑定环境</code></td><td>忘了 <code>bt.bind_env(env)</code></td></tr>
+    <tr><td>一个 tick 做完好几个动作</td><td>正常：默认动作"一步到位"；要分步请返回 <code>RUNNING</code></td></tr>
+    <tr><td>抛 <code>PlanningFailure</code></td><td>目标在该动作集下不可达，检查动作模型是否漏了效果</td></tr>
+    <tr><td>PDDL 提示"含有阻断项"</td><td>看 <code>res.report.format()</code>；确认后 <code>strict=False</code>（失去保证）</td></tr>
+    <tr><td>动作数爆炸、规划很慢</td><td>收紧类型约束；确认静态谓词被识别；grounding 是全量展开</td></tr>
+  </table>
+</section>
+
+</main>
+</div>
+
+<footer>
+  <div class="foot">
+    <div style="display:flex; align-items:center; gap:8px">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#2f6feb" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.2 5.6L20 10l-4.4 3.6L16.8 20 12 16.9 7.2 20l1.2-6.4L4 10l5.8-1.4z"/></svg>
+      <span>Copyright © 2026 <b>caiyishuai</b> · <b>NUDT-DIDS 团队</b>. All rights reserved.</span>
+    </div>
+    <div>btplan · 行为树扩展规划（BT Expansion）教程 · 单文件离线页面</div>
+  </div>
+</footer>
+
+<script>
+/* =========================================================
+   Demo A：逐 tick 执行
+   ========================================================= */
+const ACTIONS_A = {
+  "Move(s,as)": {pre:["Free(as)"],                 add:["At(s,ps)","WayClear"], del:["Free(as)","At(s,ps)"]},
+  "Move(b,ab)": {pre:["Free(ab)","WayClear"],      add:["At(b,ab)"],            del:["Free(ab)","At(b,pb)"]},
+};
+const TREE_A = {type:"fallback", label:"Fallback", children:[
+  {type:"cond", label:"cond At(b,ab)", literals:["At(b,ab)"]},
+  {type:"sequence", label:"Sequence", children:[
+    {type:"fallback", label:"Fallback", children:[
+      {type:"cond", label:"cond Free(ab) & WayClear", literals:["Free(ab)","WayClear"]},
+      {type:"sequence", label:"Sequence", children:[
+        {type:"cond", label:"cond Free(ab) & Free(as)", literals:["Free(ab)","Free(as)"]},
+        {type:"act",  label:"act Move(s,as)", name:"Move(s,as)"},
+      ]},
+    ]},
+    {type:"act", label:"act Move(b,ab)", name:"Move(b,ab)"},
+  ]},
+]};
+const START_A = ["Free(ab)","Free(as)","At(b,pb)","At(s,ps)"];
+const GOAL_A  = ["At(b,ab)"];
+
+let aState, aTick = 0, aMode = "oneshot", aDone = false;
+
+function renderTree(node, host){
+  host.innerHTML = "";
+  host.appendChild(buildNode(node, true));
+}
+function buildNode(node, isRoot){
+  const wrap = document.createElement("div");
+  wrap.className = "tnode" + (isRoot ? " root" : "") + " dim";
+  const lab = document.createElement("span");
+  lab.className = "tlabel " + ({fallback:"sel",sequence:"seq",cond:"cond",act:"act"}[node.type]);
+  lab.textContent = node.label;
+  wrap.appendChild(lab);
+  node.el = wrap;
+  const kids = node.children || [];
+  if(node.type === "sequence" && kids.length){
+    const row = document.createElement("div");       // Sequence 的孩子横排：A → B → C
+    row.className = "tkids-row";
+    kids.forEach((c, i) => {
+      if(i){
+        const arrow = document.createElement("span");
+        arrow.className = "tarrow";
+        arrow.textContent = "→";
+        row.appendChild(arrow);
+      }
+      const childEl = buildNode(c, false);
+      childEl.classList.add("inrow");
+      row.appendChild(childEl);
+    });
+    wrap.appendChild(row);
+  }else{
+    kids.forEach(c => wrap.appendChild(buildNode(c, false)));  // Fallback 的孩子竖排
+  }
+  return wrap;
+}
+function clearStatus(node){
+  node.el.classList.remove("success","failure","running");
+  node.el.classList.add("dim");
+  (node.children || []).forEach(clearStatus);
+}
+function setStatus(node, status){
+  node.el.classList.remove("dim","success","failure","running");
+  node.el.classList.add(status);
+}
+function logA(text, cls){
+  const box = document.getElementById("log-a");
+  const line = document.createElement("div");
+  line.className = cls || "";
+  line.textContent = text;
+  box.appendChild(line);
+  box.scrollTop = box.scrollHeight;
+}
+function renderStateA(){
+  const host = document.getElementById("state-a");
+  host.innerHTML = "";
+  START_A.concat(["WayClear","At(b,ab)","At(s,ps)","At(b,pb)","Free(ab)","Free(as)"])
+    .filter((v,i,arr)=>arr.indexOf(v)===i).sort().forEach(lit=>{
+      const chip = document.createElement("span");
+      chip.className = "chip" + (aState.has(lit) ? " on" : " off");
+      chip.textContent = lit;
+      host.appendChild(chip);
+    });
+}
+function evalNodeA(node){
+  if(node.type === "cond"){
+    const ok = node.literals.every(l => aState.has(l));
+    setStatus(node, ok ? "success" : "failure");
+    logA("  " + node.label + ": " + (ok ? "SUCCESS" : "FAILURE"), ok ? "s" : "f");
+    return ok ? "success" : "failure";
+  }
+  if(node.type === "act"){
+    const a = ACTIONS_A[node.name];
+    if(!a.pre.every(l => aState.has(l))){
+      setStatus(node, "failure");
+      logA("  " + node.label + ": FAILURE（前提不满足）", "f");
+      return "failure";
+    }
+    a.del.forEach(l => aState.delete(l));
+    a.add.forEach(l => aState.add(l));
+    logA("  ▶ 执行 " + node.name + "　→　状态更新", "r");
+    if(aMode === "running"){
+      setStatus(node, "running");
+      logA("  " + node.label + ": RUNNING（本拍到此为止）", "r");
+      return "running";
+    }
+    setStatus(node, "success");
+    logA("  " + node.label + ": SUCCESS", "s");
+    return "success";
+  }
+  if(node.type === "fallback"){
+    for(const child of node.children){
+      const r = evalNodeA(child);
+      if(r === "success" || r === "running"){ setStatus(node, r); return r; }
+    }
+    setStatus(node, "failure");
+    return "failure";
+  }
+  if(node.type === "sequence"){
+    for(const child of node.children){
+      const r = evalNodeA(child);
+      if(r === "failure"){ setStatus(node, "failure"); return "failure"; }
+      if(r === "running"){ setStatus(node, "running"); return "running"; }
+    }
+    setStatus(node, "success");
+    return "success";
+  }
+  return "failure";
+}
+function resetA(){
+  aState = new Set(START_A);
+  aTick = 0;
+  aDone = false;
+  clearStatus(TREE_A);
+  renderStateA();
+  document.getElementById("log-a").innerHTML = "";
+  document.getElementById("tick-no").textContent = "0";
+  logA("初始状态：" + [...aState].sort().join(", "), "m");
+}
+function tickA(){
+  if(aDone) return;
+  clearStatus(TREE_A);
+  aTick += 1;
+  document.getElementById("tick-no").textContent = aTick;
+  logA("--- tick " + aTick + " ---", "m");
+  const r = evalNodeA(TREE_A);
+  logA("根节点：" + r.toUpperCase(), r === "failure" ? "f" : (r === "running" ? "r" : "s"));
+  renderStateA();
+  if(GOAL_A.every(g => aState.has(g))){
+    aDone = true;
+    logA("✔ 目标 At(b,ab) 已达成，运行结束", "s");
+  } else if(r === "failure"){
+    aDone = true;
+    logA("✘ 根节点 FAILURE，没有可用分支", "f");
+  }
+}
+document.getElementById("btn-tick").onclick = tickA;
+document.getElementById("btn-reset").onclick = resetA;
+document.getElementById("tick-mode").onclick = function(){
+  aMode = (aMode === "oneshot") ? "running" : "oneshot";
+  this.textContent = "⇄ 动作语义：" + (aMode === "oneshot" ? "一步到位" : "分步（RUNNING）");
+  resetA();
+  logA("已切换为「" + (aMode === "oneshot" ? "一步到位" : "分步（RUNNING）") + "」语义", "m");
+};
+renderTree(TREE_A, document.getElementById("tree-a"));
+resetA();
+
+/* =========================================================
+   Demo B：扩展过程分步
+   ========================================================= */
+const STEPS_B = [
+  {
+    tree:{type:"cond", label:"cond At(b,ab)"},
+    cap:"起点：树里只有一个目标条件结点。此时 At(b,ab) 不在初始状态中，树跑不起来，需要扩展。"
+  },
+  {
+    tree:{type:"fallback", label:"Fallback", children:[
+      {type:"cond", label:"cond At(b,ab)"},
+      {type:"sequence", label:"Sequence", children:[
+        {type:"cond", label:"cond Free(ab) & WayClear"},
+        {type:"act",  label:"act Move(b,ab)"},
+      ]},
+    ]},
+    cap:"第 1 步：动作 Move(b,ab) 能产出 At(b,ab)，于是长出 sequence{cond, act}；\n" +
+        "原条件被保留为第一个分支（即“目标已达成”这条短路分支）。\n" +
+        "新前提 c_attr = (pre ∪ c) − add = {Free(ab), WayClear}。\n" +
+        "（Move(s,ab) 被判据①排除：它会删掉 Free(ab)。）"
+  },
+  {
+    tree:{type:"fallback", label:"Fallback", children:[
+      {type:"cond", label:"cond At(b,ab)"},
+      {type:"sequence", label:"Sequence", children:[
+        {type:"fallback", label:"Fallback", children:[
+          {type:"cond", label:"cond Free(ab) & WayClear"},
+          {type:"sequence", label:"Sequence", children:[
+            {type:"cond", label:"cond Free(ab) & Free(as)"},
+            {type:"act",  label:"act Move(s,as)"},
+          ]},
+        ]},
+        {type:"act",  label:"act Move(b,ab)"},
+      ]},
+    ]},
+    cap:"第 2 步：继续扩展 {Free(ab), WayClear} —— WayClear 还不在初始状态里。\n" +
+        "Move(s,as) 能产出 WayClear 且不删条件里的文字，所以再长一条分支，\n" +
+        "新前提 c_attr = {Free(ab), Free(as)}，它已被初始状态满足。"
+  },
+  {
+    tree:{type:"fallback", label:"Fallback", children:[
+      {type:"cond", label:"cond At(b,ab)"},
+      {type:"sequence", label:"Sequence", children:[
+        {type:"fallback", label:"Fallback", children:[
+          {type:"cond", label:"cond Free(ab) & WayClear"},
+          {type:"sequence", label:"Sequence", children:[
+            {type:"cond", label:"cond Free(ab) & Free(as)"},
+            {type:"act",  label:"act Move(s,as)"},
+          ]},
+        ]},
+        {type:"act",  label:"act Move(b,ab)"},
+      ]},
+    ]},
+    cap:"第 3 步：符号求值 can_run() 通过——从初始状态出发，\n" +
+        "左分支失败 → 右分支：WayClear 缺 → 走 Move(s,as) → 之后 Move(b,ab) 可执行。\n" +
+        "树已能从 start 跑起来，扩展结束。这就是 examples/02 打印出来的那棵树。"
+  },
+];
+let bIdx = 0;
+function renderB(){
+  renderTree(STEPS_B[bIdx].tree, document.getElementById("tree-b"));
+  document.querySelectorAll("#tree-b .tnode").forEach(n => n.classList.remove("dim"));
+  document.getElementById("cap-b").textContent = STEPS_B[bIdx].cap;
+  const dots = document.getElementById("dots");
+  dots.innerHTML = "";
+  STEPS_B.forEach((_, i) => {
+    const d = document.createElement("span");
+    d.className = "dot" + (i === bIdx ? " on" : "");
+    dots.appendChild(d);
+  });
+}
+document.getElementById("btn-next").onclick = () => { if(bIdx < STEPS_B.length - 1){ bIdx++; renderB(); } };
+document.getElementById("btn-prev").onclick = () => { if(bIdx > 0){ bIdx--; renderB(); } };
+renderB();
+</script>
+
+<button id="totop" title="回到顶部" aria-label="回到顶部">
+  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"
+       stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+</button>
+
+<script>
+/* ---------- 页面装饰：滚动进度 / 回到顶部 / 目录高亮 / 章节淡入 ---------- */
+(function(){
+  const bar   = document.getElementById("progress");
+  const toTop = document.getElementById("totop");
+  function onScroll(){
+    const max = document.documentElement.scrollHeight - window.innerHeight;
+    bar.style.width = (max > 0 ? (window.scrollY / max) * 100 : 0) + "%";
+    toTop.classList.toggle("show", window.scrollY > 500);
+  }
+  window.addEventListener("scroll", onScroll, {passive:true});
+  onScroll();
+  toTop.onclick = () => window.scrollTo({top:0, behavior:"smooth"});
+
+  const links    = Array.prototype.slice.call(document.querySelectorAll(".toc a"));
+  const sections = Array.prototype.slice.call(document.querySelectorAll("section"));
+  function revealAll(){ sections.forEach(s => s.classList.add("in")); }
+  if("IntersectionObserver" in window){
+    const io = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if(!e.isIntersecting) return;
+        e.target.classList.add("in");
+        const id = e.target.id;
+        links.forEach(a => a.classList.toggle("active", a.getAttribute("href") === "#" + id));
+      });
+    }, {threshold:0.02, rootMargin:"0px 0px -15% 0px"});
+    sections.forEach(s => io.observe(s));
+  }else{
+    revealAll();
+  }
+  setTimeout(revealAll, 3000);   // 兜底：任何情况下都保证内容可见
+})();
+</script>
+</body>
+</html>
