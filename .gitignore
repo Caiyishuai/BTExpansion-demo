@@ -8,10 +8,10 @@ build/
 dist/
 *.egg-info/
 
-# Virtual environments
-.venv/
-venv/
-env/
+# Virtual environments（仅项目根目录，勿忽略 src/btplan/env 等源码目录）
+/.venv/
+/venv/
+/env/
 
 # IDE - 仅忽略本地工作区状态，保留共享配置
 .idea/workspace.xml
