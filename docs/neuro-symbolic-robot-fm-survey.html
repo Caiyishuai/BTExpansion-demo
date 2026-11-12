@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>神经符号 × 机器人大模型：近年论文调研（2022–2026）</title>
+<style>
+  :root{
+    --bg:#0f1115; --panel:#161a21; --panel2:#1c212a; --line:#2a3038;
+    --fg:#e6e9ef; --fg-dim:#a7b0bd; --fg-faint:#7b8593;
+    --accent:#6ea8fe; --accent2:#7ee0c0; --warn:#f0a45d; --danger:#f2777a;
+    --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    line-height:1.75;font-size:15px;}
+  .wrap{max-width:1080px;margin:0 auto;padding:48px 28px 96px;}
+  header{border-bottom:1px solid var(--line);padding-bottom:28px;margin-bottom:40px;}
+  h1{font-size:30px;line-height:1.35;margin:0 0 12px;letter-spacing:.3px;}
+  .sub{color:var(--fg-dim);font-size:14px;}
+  .meta{margin-top:14px;font-size:13px;color:var(--fg-faint);font-family:var(--mono);}
+  h2{font-size:21px;margin:52px 0 16px;padding-left:12px;border-left:3px solid var(--accent);}
+  h3{font-size:16px;margin:30px 0 10px;color:var(--accent2);}
+  h4{font-size:14.5px;margin:20px 0 8px;color:var(--fg);}
+  p{margin:10px 0;}
+  a{color:var(--accent);text-decoration:none;}
+  a:hover{text-decoration:underline;}
+  code{font-family:var(--mono);font-size:12.5px;background:var(--panel2);
+    padding:1.5px 5px;border-radius:4px;color:#cbd5e1;}
+  table{width:100%;border-collapse:collapse;margin:16px 0;font-size:13.5px;}
+  th,td{border:1px solid var(--line);padding:9px 11px;text-align:left;vertical-align:top;}
+  th{background:var(--panel2);color:var(--fg-dim);font-weight:600;font-size:12.5px;
+    text-transform:uppercase;letter-spacing:.4px;}
+  tbody tr:nth-child(even){background:rgba(255,255,255,.017);}
+  .tag{display:inline-block;font-size:11px;padding:1px 7px;border-radius:10px;
+    border:1px solid var(--line);color:var(--fg-dim);font-family:var(--mono);white-space:nowrap;}
+  .t-a{color:var(--accent);border-color:#2b4a7a;}
+  .t-b{color:var(--accent2);border-color:#2a5f52;}
+  .t-c{color:var(--warn);border-color:#6b4a2a;}
+  .t-d{color:#c99bf5;border-color:#4a3a66;}
+  .t-e{color:var(--danger);border-color:#6b3336;}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:10px;
+    padding:16px 20px;margin:16px 0;}
+  .card .title{font-weight:600;font-size:15px;margin-bottom:4px;}
+  .card .where{font-size:12px;color:var(--fg-faint);font-family:var(--mono);margin-bottom:8px;}
+  .card ul{margin:8px 0 0;padding-left:20px;}
+  .card li{margin:4px 0;font-size:14px;}
+  .num{color:var(--accent2);font-weight:600;}
+  blockquote{margin:14px 0;padding:10px 16px;border-left:3px solid var(--warn);
+    background:rgba(240,164,93,.06);color:var(--fg-dim);font-size:14px;}
+  .note{font-size:13px;color:var(--fg-faint);}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  @media(max-width:760px){.grid{grid-template-columns:1fr}}
+  .kpi{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:12px 14px;}
+  .kpi .v{font-size:22px;font-weight:700;color:var(--accent2);font-family:var(--mono);}
+  .kpi .l{font-size:12px;color:var(--fg-faint);}
+  ul.tight li{margin:5px 0;}
+  hr{border:0;border-top:1px solid var(--line);margin:44px 0;}
+  .toc{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px 22px;}
+  .toc ol{margin:6px 0 0;padding-left:22px;font-size:14px;}
+  .toc li{margin:3px 0;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>神经符号 × 机器人大模型：近年论文调研</h1>
+  <div class="sub">Neurosymbolic Approaches for Robot Foundation Models — 2022–2026 文献脉络、技术路线与选题判断</div>
+  <div class="meta">整理于 2026-11-02 · 覆盖 CoRL / ICRA / IROS / RSS / NeurIPS / ICLR / ACL / FSE / AAAI · 约 45 篇核心工作</div>
+</header>
+
+<div class="toc">
+  <strong>目录</strong>
+  <ol>
+    <li><a href="#s1">一句话结论</a></li>
+    <li><a href="#s2">分类框架：三条信息流 + 一个正交维度</a></li>
+    <li><a href="#s3">A 类｜符号 → 大模型：用形式结构约束生成</a></li>
+    <li><a href="#s4">B 类｜大模型 → 符号：让模型当建模者与规划器</a></li>
+    <li><a href="#s5">C 类｜双向闭环：验证、批评与修复</a></li>
+    <li><a href="#s6">D 类｜架构内嵌：把符号层做进模型里</a></li>
+    <li><a href="#s7">E 类｜冷静的评估与反证</a></li>
+    <li><a href="#s8">综述与 Benchmark</a></li>
+    <li><a href="#s9">六条趋势判断</a></li>
+    <li><a href="#s10">结合 BT + PDDL 的选题建议</a></li>
+  </ol>
+</div>
+
+<h2 id="s1">1. 一句话结论</h2>
+
+<p>这个领域在 2022–2023 年问的是「<em>大模型能不能当规划器</em>」，2024–2025 年的答案是「<em>能，但不可靠</em>」，于是 2025–2026 年主流范式收敛为一句话：</p>
+
+<blockquote>
+<strong>把大模型从「规划器」降格/升格为「建模者（modeler）与提议者（proposer）」，把正确性交给确定性求解器，把失败交给符号层做可解释的修复。</strong>
+</blockquote>
+
+<p>换句话说，符号的角色从「被 LLM 替代的旧方法」变成了「LLM 的护栏、验证器和教练」。与此同时，符号层正在从任务层<strong>下探</strong>到运动/控制层（TAMP、动力学验证、代价函数设计），也正在<strong>内嵌</strong>进 VLA 模型本身（符号 primitive 接口）。</p>
+
+<div class="grid">
+  <div class="kpi"><div class="v">99% vs 30%</div><div class="l">ALFWorld 上 SCLPlan（LLM + PDDL 护栏）对比纯符号 / 纯 LLM 规划器</div></div>
+  <div class="kpi"><div class="v">80×</div><div class="l">结构化长程操作任务上，神经符号方法相对 VLA 的训练能耗差距</div></div>
+  <div class="kpi"><div class="v">100% → 25%</div><div class="l">PDDL 规划器 vs 主流推理模型的「执行保真度」（计划能真正跑通的比例）</div></div>
+  <div class="kpi"><div class="v">0% HAR</div><div class="l">ICLR 2026 VIRF 在家庭安全任务上的危险动作率，同时保持最高目标完成率</div></div>
+</div>
+
+<h2 id="s2">2. 分类框架：三条信息流 + 一个正交维度</h2>
+
+<p>我按<strong>符号与神经之间的信息流方向</strong>分类（与 IJCAI 2025 神经符号综述的三分法一致），再叠加一个正交维度：<strong>符号作用在系统栈的哪一层</strong>（任务层 / 运动层 / 架构内）。</p>
+
+<table>
+<thead><tr><th style="width:16%">类别</th><th style="width:26%">信息流</th><th>典型机制</th><th style="width:22%">代表工作</th></tr></thead>
+<tbody>
+<tr><td><span class="tag t-a">A</span> 符号→神经</td><td>符号结构约束神经生成</td><td>约束解码、PDDL 转移模型限解码、LTL 引导、SMT 校验、程序合成作为求解器</td><td>SELP、SCLPlan、Code-as-Symbolic-Planner</td></tr>
+<tr><td><span class="tag t-b">B</span> 神经→符号</td><td>大模型产出/补全符号模型</td><td>LLM 写 PDDL 域与问题、生成行为树、生成 3DSG 子图、从交互中归纳动作语义</td><td>SayPlan、LLM-as-BT-Planner、LaMMA-P、PSALM-V、Gideon</td></tr>
+<tr><td><span class="tag t-c">C</span> 双向闭环</td><td>生成—验证—修复循环</td><td>逻辑导师给出因果反馈、LTL critic、计划预执行校验、物理仿真回溯</td><td>VIRF、LogicGuard、VerifyLLM、SENTINEL、Kinodynamic TAMP</td></tr>
+<tr><td><span class="tag t-d">D</span> 架构内嵌</td><td>可微/结构化符号层</td><td>符号 primitive 指针、场景图神经符号层、LLM 设计代价函数、概率逻辑编程</td><td>NS-VLA、CoRAL、NeuroStrata、Scallop 系</td></tr>
+<tr><td><span class="tag t-e">E</span> 评估与反证</td><td>—</td><td>基准测试、消融、能耗与保真度度量</td><td>PlanBench、PDDLStream 系统研究、"The Price Is Not Right"</td></tr>
+</tbody>
+</table>
+
+<h2 id="s3">3. A 类｜符号 → 大模型：用形式结构约束生成</h2>
+
+<p>核心思路：LLM 的自由度是问题也是资产。与其事后检查，不如在<strong>解码阶段</strong>就用符号结构把非法 token 屏蔽掉。</p>
+
+<div class="card">
+  <div class="title">SELP: Generating Safe and Efficient Task Plans for Robot Agents with LLMs</div>
+  <div class="where">ICRA 2025 · arXiv:2409.19471 · Purdue (Yi Wu, Lin Tan, Suresh Jagannathan)</div>
+  <ul>
+    <li>三件套：<strong>等价投票</strong>（采样多条 LTL 公式、按语义等价分组、取多数）、<strong>约束解码</strong>（用 LTL 约束自回归生成，保证计划满足规范）、<strong>领域微调</strong>（解 safety 与 efficiency 的目标冲突）。</li>
+    <li>无人机导航：安全率 +10.8%、计划效率 +19.8%；机械臂操作：安全率 +20.4%。</li>
+    <li>关键启示：把自然语言 → LTL 当成<strong>中间表示层</strong>，比直接 NL→动作序列可控得多。</li>
+  </ul>
+</div>
+
+<div class="card">
+  <div class="title">SCLPlan: Constrained Natural Language Action Planning for Resilient Embodied Systems</div>
+  <div class="where">JHU / ARL · arXiv:2510.06357 · 2025</div>
+  <ul>
+    <li>四阶段：LLM 把 NL + 3D 场景图翻译成 PDDL 目标态 → 调 Fast Downward 类求解器 → 失败则由 LLM 以 ReAct 方式给下一步 → <strong>前置条件验证（PV）</strong>拦截非法动作并让求解器生成修正子计划。</li>
+    <li>ALFWorld <span class="num">99%</span>；真实 Spot 四足 10 个任务 <span class="num">100%</span>（纯 LLM 50%、纯符号 30%）。</li>
+    <li>消融：仅 PV 一步就在 7 个 LLM backbone 上平均 <span class="num">+40%</span> 成功率；token 消耗比纯 LLM 每任务少约 2 万。</li>
+    <li>值得注意的结论：<strong>「部分域（partial domain）就够了」</strong>——LLM 只需填补符号逻辑够不到的空缺。</li>
+  </ul>
+</div>
+
+<div class="card">
+  <div class="title">Code-as-Symbolic-Planner: Foundation Model-Based Robot Planning via Symbolic Code Generation</div>
+  <div class="where">IROS 2025 · arXiv:2503.01700 · (Yongchao Chen, Chuchu Fan, MIT)</div>
+  <ul>
+    <li>与 Code-as-Policies 的分野：代码不是用来<em>调用</em>机器人 API 的，而是让 LLM <strong>现写一个 solver / planner / checker</strong> 来解带约束优化。</li>
+    <li>7 个 TAMP 任务 × 3 个 LLM，相对最佳基线平均 <span class="num">+24.1%</span> 成功率。</li>
+    <li>意义：把「符号计算」这件事件本身外包给 LLM 的代码能力，绕开了预定义求解器泛化不足的问题。</li>
+  </ul>
+</div>
+
+<p class="note">同类还包括：用 PDDL 转移模型限制解码 + MCTS 评估可执行延续的神经符号具身智能体（VirtualHome / ALFWorld 上 4B–27B 模型成功率 &gt;90%，token 更少）；以及 SELP 之前的 NL→LTL 系列工作。</p>
+
+<h2 id="s4">4. B 类｜大模型 → 符号：让模型当建模者与规划器</h2>
+
+<p>这条线是「神经符号机器人」最早爆发的一支，也是和你自己工作（PDDL → 行为树）最直接相关的一支。</p>
+
+<h3>4.1 场景图作为符号接地层</h3>
+<div class="card">
+  <div class="title">SayPlan: Grounding LLMs using 3D Scene Graphs for Scalable Robot Task Planning</div>
+  <div class="where">CoRL 2023 · QUT Centre for Robotics (Krishan Rana, Niko Sünderhauf)</div>
+  <ul>
+    <li>三招保证可扩展性：<strong>层次化语义搜索</strong>（对折叠 3DSG 做 expand/contract，只把任务相关子图喂给 LLM）、<strong>用 Dijkstra 接管导航序列</strong>缩短规划视野、<strong>场景图模拟器做迭代重规划</strong>。</li>
+    <li>规模：3 层楼、36 房间、140 物体的真实移动操作机器人。</li>
+    <li>后续 <strong>EmbodiedRAG</strong>（JHU/ARL, 2025）把 RAG 范式搬到 3DSG：检索任务相关子图并随执行动态调整，解决 token 上限与注意力偏置。</li>
+  </ul>
+</div>
+
+<h3>4.2 让 LLM 直接产出结构化控制器（行为树 / 层级树）</h3>
+<div class="card">
+  <div class="title">LLM-as-BT-Planner: Leveraging LLMs for Behavior Tree Generation in Robot Task Planning</div>
+  <div class="where">arXiv:2409.10444 · 2024</div>
+  <ul>
+    <li>三层架构：LLM 组装规划器做任务分解 → LLM 行为树生成器产出完整 BT → 机器人接口加载执行并依据世界模型重规划。</li>
+    <li>四种生成策略：<strong>一步生成 / 迭代生成</strong>（模拟器反馈自纠）/ <strong>人机协作</strong>（用户反馈修正）/ <strong>递归生成</strong>（MakePlan → MakeTree → PredictState 三次递归调用）。</li>
+    <li>对小型 LLM 做了监督微调（单元树生成任务等）。</li>
+  </ul>
+</div>
+
+<div class="card">
+  <div class="title">BT-ACTION / Interpretable Robot Control via Structured BTs and LLMs</div>
+  <div class="where">arXiv:2504.02779 (KTH) · arXiv:2508.09621 (SnT) · 2025</div>
+  <ul>
+    <li>BT-ACTION：测试驱动（test-driven）地让 LLM 生成 BT，45 人用户研究表明比直接 prompting 犯错更少、信任度更高、被试显著偏好。</li>
+    <li>后者强调可解释 HRI，认知→执行准确率约 94%，代码开源。</li>
+  </ul>
+</div>
+
+<div class="card">
+  <div class="title">MRBTP: Efficient Multi-Robot Behavior Tree Planning and Collaboration</div>
+  <div class="where"><strong>AAAI 2025</strong> · arXiv:2502.18072 · (Yishuai Cai 等，国防科大)</div>
+  <ul>
+    <li>多机器人 BT 规划，具备<strong>可靠性与完备性理论保证</strong>；跨树扩展协调异质动作；备份结构 + 意图共享处理同构冗余。</li>
+    <li>可选 <strong>LLM 插件</strong>：用预训练 LLM 推理每个机器人的目标相关动作，预规划成长程子树，显著提速。</li>
+    <li class="note">（这是你自己的组的工作，放在脉络里看：它属于「符号规划器为主 + LLM 做启发式加速」这一支，与下面 LaMMA-P / FLEET 的「LLM 为主 + 求解器兜底」恰好是镜像路线。）</li>
+  </ul>
+</div>
+
+<div class="card">
+  <div class="title">Generalized Mission Planning for Heterogeneous Multi-Robot Teams via LLM-Constructed Hierarchical Trees</div>
+  <div class="where">ICRA 2025 · Honda Research (Piyush Gupta 等)</div>
+  <ul>
+    <li>LLM 不生成自由文本，而是调用受约束 API 构建 TAEMS 风格的<strong>层级任务树</strong>（AND / XOR / Precedence），从结构上抑制幻觉。</li>
+    <li>再自底向上做启发式 MRTA 分配，带剪枝参数 ρ。5 个复杂场景中 4 个生成可行计划；在「推荐意大利餐厅」这一负例上正确判断出机器人能力不足。</li>
+  </ul>
+</div>
+
+<h3>4.3 LLM 驱动 PDDL 规划（多机器人）</h3>
+<div class="card">
+  <div class="title">LaMMA-P: Generalizable Multi-Agent Long-Horizon Task Allocation and Planning with LM-Driven PDDL Planner</div>
+  <div class="where">ICRA 2025 · arXiv:2409.20560 · UC Riverside / Penn State</div>
+  <ul>
+    <li>六模块流水线：Precondition Identifier → Task Allocator → Problem Generator → PDDL Validator → Fast Downward / LLM Planner（失败回退）→ Sub-Plan Combiner。</li>
+    <li>基准 <strong>MAT-THOR</strong>（AI2-THOR，5 个户型、70 个任务）。相对 SMART-LLM：成功率 <span class="num">+105%</span>、效率 <span class="num">+36%</span>。</li>
+  </ul>
+</div>
+
+<div class="card">
+  <div class="title">FLEET: Formal Language-Grounded Scheduling for Heterogeneous Robot Teams</div>
+  <div class="where">arXiv:2510.07417 · JHU/ARL · 2025</div>
+  <ul>
+    <li>LLM 前端产出（i）带时长与偏序的任务图、（ii）能力感知的 robot–task 适配矩阵；MILP 后端解 makespan 最小化；执行层用 agentic 闭环控制。</li>
+    <li>消融很有信息量：<strong>MILP 主要改善时间结构，LLM 给出的适配度对「能力耦合型」任务是决定性的</strong>——两者正交互补。</li>
+    <li>真机：两台能力不相交的四足机器人。</li>
+  </ul>
+</div>
+
+<h3>4.4 从交互中归纳符号语义（解决「域从哪来」）</h3>
+<div class="card">
+  <div class="title">PSALM-V: Automating Symbolic Planning in Interactive Visual Environments with LLMs</div>
+  <div class="where">arXiv:2506.20097 · USC (Ishika Singh, Jesse Thomason 等) · 2025</div>
+  <ul>
+    <li>不假设预定义问题文件、全可观或显式报错；通过<strong>分析执行结果 + 合成可能的错误解释</strong>来动态归纳 PDDL 问题文件与动作的 pre/post-condition，并维护树状信念。</li>
+    <li>ALFRED 部分可观测设置下：计划成功率从 37%（Claude-3.7）提升到 <span class="num">74%</span>；RTFM、Overcooked-AI 上步长效率提升；真实机器人 BlocksWorld 上即便底层操作失败仍能正确归纳条件。</li>
+  </ul>
+</div>
+
+<div class="card">
+  <div class="title">Gideon: Scalable Robot Autonomy via Neurosymbolic Planning with Lightweight Local LLM</div>
+  <div class="where">IAS 2025 · arXiv:2505.08492 · Univ. of Genoa</div>
+  <ul>
+    <li>动机直击痛点：依赖 GPT 类闭源远程模型带来第三方依赖、响应抖动、计划长度与多域扩展受限。转而用<strong>本地小模型 + 长上下文</strong>。</li>
+    <li>贡献了一个通用的 domain-problem-plan 三元组<strong>大规模数据生成器</strong>。</li>
+    <li>Qwen-2.5 1.5B（比基线小约 120×）：单域 32k 样本 <span class="num">66.1%</span> 合法计划率，多域 16k 样本 <span class="num">70.6%</span>——<em>数据多样性正向影响学习效率</em>。</li>
+  </ul>
+</div>
+
+<div class="card">
+  <div class="title">OntoAct: Hypothesis-Based Neuro-Symbolic Agents through Ontological Abstraction</div>
+  <div class="where">arXiv:2610.21983 · Seoul National University · 2026</div>
+  <ul>
+    <li>把经验提升为<strong>关于实体类型、关系与条件的公理</strong>（本体抽象），LLM 据此提出假设与动作，符号验证器核对支持条件；验证指出缺失证据，新观测再更新假设。</li>
+    <li>配套基准 <strong>Tacit-FLE</strong>（基于 Factorio）：隐藏故障诊断与修复，证据分散在运行记录里，且修复可能不彻底、需要重新评估——比一次性规划更贴近现实。</li>
+  </ul>
+</div>
+
+<h2 id="s5">5. C 类｜双向闭环：验证、批评与修复</h2>
+
+<p>2025–2026 年最活跃的方向。分歧点在于：<strong>符号层发现违规之后该做什么</strong>。早年是「拒绝 / 回退」，现在的共识是「给出可执行、可解释的修复信号」。</p>
+
+<div class="card">
+  <div class="title">VIRF: Grounding Generative Planners in Verifiable Logic（Verifiable Iterative Refinement Framework）</div>
+  <div class="where"><strong>ICLR 2026</strong> · arXiv:2602.08373</div>
+  <ul>
+    <li>批评得非常准：现有安全范式让 LLM 监督 LLM（自我修正、多智能体辩论），是<strong>自指循环</strong>，无法给出可验证保证。</li>
+    <li><strong>tutor–apprentice 对话</strong>：确定性的 Logic Tutor（锚定在形式安全本体上）给 LLM Apprentice 提供<strong>因果性、教学式反馈</strong>，让它「理解为什么不安全」从而修复而非回避。</li>
+    <li>配套：从真实文档合成安全知识库的获取流水线（顺带暴露了现有 benchmark 的盲区）。</li>
+    <li>结果：危险动作率 HAR <span class="num">0%</span>，目标条件率 GCR <span class="num">77.3%</span>（基线最高），平均仅需 <span class="num">1.1</span> 轮修正。</li>
+  </ul>
+</div>
+
+<div class="card">
+  <div class="title">LogicGuard: Improving Embodied LLM agents through Temporal Logic based Critics</div>
+  <div class="where">arXiv:2507.03293 · 2025</div>
+  <ul>
+    <li>actor–critic：LLM actor 选高层动作；critic 分析完整轨迹并<strong>提出新的 LTL 约束</strong>来「屏蔽」actor 未来的不安全/低效行为。支持固定安全规则与自适应学习约束，模型无关。</li>
+    <li>Behavior-100：Inner Monologue 47% → <span class="num">72%</span>；失败动作 23% → 4.5%。</li>
+  </ul>
+</div>
+
+<div class="card">
+  <div class="title">VerifyLLM: LLM-Based Pre-Execution Task Plan Verification for Robots</div>
+  <div class="where">arXiv:2507.05118 · 2025 · 附 ALFRED-LTL / VirtualHome-LTL 数据集</div>
+  <ul>
+    <li>用 LTL 作中间表示 + LLM 推理，系统识别三类计划不一致：<strong>位置错误、遗漏前置条件、冗余动作</strong>。</li>
+  </ul>
+</div>
+
+<div class="card">
+  <div class="title">SENTINEL: A Multi-Level Formal Framework for Safety Evaluation of LLM-based Embodied Agents</div>
+  <div class="where">arXiv:2510.12985 · Northwestern (Qi Zhu) 等 · 2025</div>
+  <ul>
+    <li>三层：<strong>语义层</strong>（NL 安全要求 → TL 公式，并探测 agent 理解是否对齐）、<strong>计划层</strong>（LTL 可满足性检查）、<strong>轨迹层</strong>（多轨迹合并为计算树，用 CTL 路径量词验证）。</li>
+    <li>92% 安全约束成功翻译为语义等价的 LTL；计划层判定 35% 的计划不安全；轨迹层检出 87% 的安全违规。</li>
+  </ul>
+</div>
+
+<div class="card">
+  <div class="title">Kinodynamic TAMP using VLM-guided and Interleaved Sampling</div>
+  <div class="where">arXiv:2510.26139 · Ewha (Minseo Kwon, Young J. Kim) · 2025/2026</div>
+  <ul>
+    <li><strong>混合状态树</strong>统一表示符号态与数值态，任务与运动决策共同进行；动力学约束交给运动规划器 + 物理仿真器验证（黑盒转移模型）；失败时 VLM 看渲染图<strong>预测回溯节点</strong>。</li>
+    <li>相比 PDDLStream 与 LLM 类 TAMP：平均成功率提升 32%–1167%，复杂问题规划时间下降。双 UR5e 真机 n=3/4 达 100%。</li>
+  </ul>
+</div>
+
+<div class="card">
+  <div class="title">Meta-Optimization and Program Search using Language Models for TAMP</div>
+  <div class="where">CoRL 2025 · arXiv:2505.03725 · (Marc Toussaint 组)</div>
+  <ul>
+    <li>直指接口问题：既有方法不是抽象过度（链接简化技能原语）就是抽象不足（直接预测关节角）。做法是把<strong>轨迹优化问题的程序搜索</strong>当作基础模型与机器人控制之间的接口，并用零阶方法优化数值参数。</li>
+  </ul>
+</div>
+
+<h2 id="s6">6. D 类｜架构内嵌：把符号层做进模型里</h2>
+
+<p>与前几类「LLM 在流水线外」不同，这一类是<strong>把符号结构变成模型内部的表示瓶颈</strong>。这是 2026 年最值得关注的新增量。</p>
+
+<div class="card">
+  <div class="title">NS-VLA: Towards Neuro-Symbolic Vision-Language-Action Models</div>
+  <div class="where">arXiv:2603.09542 · 2026 · 代码开源</div>
+  <ul>
+    <li>指出 VLA 的三个结构性问题：<strong>backbone 对结构盲目、泛化被 backbone 绑定、单层扁平目标优化</strong>。</li>
+    <li>三件套：Neuro-Symbolic Encoder（计划约束的 primitive 推理）、Neuro-Symbolic Solver（骨干无关的策略，以当前 primitive 为条件）、分层联合策略优化（奖励粒度匹配）。</li>
+    <li>接口从「图像+语言 → 连续动作」改为「→ 符号 primitive + 参数 → 动作块（action chunk）」。<strong>primitive 仍由神经策略选择，但高层输出是结构化的</strong>，因此可监督、可检查、可奖励、可调试。</li>
+    <li>「单调指针（monotone pointer）」跟踪 primitive 序列进度，缩小搜索空间——这个设计对长程操作很关键。</li>
+  </ul>
+</div>
+
+<div class="card">
+  <div class="title">CoRAL: 神经符号自适应循环（RSS 2026）</div>
+  <div class="where">RSS 2026 · 复杂接触式操控</div>
+  <ul>
+    <li>不让 LLM 直接输出动作，而是让 LLM 当<strong>「代价设计师（Cost Designer）」</strong>，为底层 MPPI 运动规划器生成目标函数。</li>
+    <li>神经符号自适应循环：VLM 先对质量、摩擦等物理参数做语义预估；执行失败时外层 LLM 依据物理反馈（如「推了没推动」）做在线系统辨识，实时修正物理参数认知并改写控制策略。</li>
+    <li>检索式记忆单元存储成功的物理参数与接触策略，跨越冷启动。</li>
+    <li>未见过的复杂接触任务（推拉、倚墙翻转、定力控制）上比 OpenVLA 等 SOTA 平均提升 50%+；真实 Franka Panda 上零样本部署。</li>
+  </ul>
+</div>
+
+<div class="card">
+  <div class="title">NeuroStrata: Harnessing Neurosymbolic Paradigms for Improved Design, Testability, and Verifiability of Autonomous CPS</div>
+  <div class="where">FSE 2025 (IVR) · arXiv:2502.12267 · Macquarie / UPenn / UF / Yale / Duke</div>
+  <ul>
+    <li>三层分层框架：高层纯符号（场景图 + 任务规划器）、中层神经符号（语义建图 + 局部规划）、底层神经符号（传感器融合 + 执行，施加物理/操作约束）。</li>
+    <li><strong>Specification Mining</strong>：用 LLM 分析边缘案例数据（如事故日志）自动生成形式化安全规约；自上而下合成约束神经训练，自下而上通过程序归纳在运行时更新符号逻辑。</li>
+    <li>LASER 案例：目标关系预测 Recall@10 = 53.98%（+30.55% 于全监督基线）；分布外仅掉 0.52%。</li>
+  </ul>
+</div>
+
+<p class="note">同一脉络的其他工作：NEUROSYMLAND（概率场景图 + Scallop 规则执行，用于 UAV 着陆，强调可解释与可验证）；以及更传统的可微符号栈（DeepProbLog、NSCL、∂ILP、Logic Tensor Networks、Neural Logic Machines），它们在机器人上仍有生命力，但 2023 年后的增长点主要在「与基础模型结合」而非单独使用。</p>
+
+<h2 id="s7">7. E 类｜冷静的评估与反证</h2>
+
+<p>这一类是<strong>最容易被忽略、但对判断方向最有价值</strong>的。它系统性地回答了「LLM 到底行不行」。</p>
+
+<div class="card">
+  <div class="title">Can LLM-Reasoning Models Replace Classical Planning? A Benchmark Study</div>
+  <div class="where">arXiv:2507.23589 · AIT Austrian Institute of Technology · 2025</div>
+  <p>直接把 PDDL 域与问题文件喂给各路 SOTA 模型，与 Fast Downward 对比。最有说服力的是<strong>执行保真度（execution fidelity）</strong>这张表：</p>
+  <table>
+    <thead><tr><th>模型</th><th>平均计划长度</th><th>平均已执行步数</th><th>执行保真度</th></tr></thead>
+    <tbody>
+      <tr><td>Fast Downward（经典）</td><td>40</td><td>40</td><td class="num">100%</td></tr>
+      <tr><td>GPT o1</td><td>26</td><td>19</td><td>80%</td></tr>
+      <tr><td>Claude Sonnet 3.7 Thinking</td><td>39</td><td>20</td><td>60%</td></tr>
+      <tr><td>GPT o3-mini</td><td>41</td><td>18</td><td>50%</td></tr>
+      <tr><td>Claude Sonnet 3.7</td><td>37</td><td>16</td><td>45%</td></tr>
+      <tr><td>Gemini 2 Flash Thinking</td><td>39</td><td>12</td><td>35%</td></tr>
+      <tr><td>Llama DeepSeek R1</td><td>25</td><td>14</td><td>30%</td></tr>
+      <tr><td>Llama 405B Instruct</td><td>25</td><td>4</td><td>15%</td></tr>
+    </tbody>
+  </table>
+  <ul><li>结论：简单任务尚可；一旦需要精确资源管理、一致的状态跟踪、严格约束遵守，全部崩塌。<strong>「计划看起来对」和「计划能跑通」是两件事。</strong></li></ul>
+</div>
+
+<div class="card">
+  <div class="title">A Systematic Study of Large Language Models for Task and Motion Planning With PDDLStream</div>
+  <div class="where">arXiv:2510.00182 · 2025</div>
+  <ul>
+    <li>构造了 <strong>16 种</strong>用 Gemini 2.5 Flash 替换 TAMP 关键组件的算法，在 4,950 个问题、3 个域上做零样本评测。</li>
+    <li>结论偏负面但很有价值：LLM 版规划器成功率更低、规划时间更长；<strong>给 LLM 喂几何细节反而比纯 PDDL 描述带来更多任务规划错误</strong>；且<strong>非推理型（更快）变体多数情况下优于推理型变体</strong>——因为 TAMP 系统会纠正 LLM 的错误，此时速度比深度更重要。</li>
+  </ul>
+</div>
+
+<div class="card">
+  <div class="title">The Price Is Not Right: Neuro-Symbolic Methods Outperform VLAs on Structured Long-Horizon Manipulation Tasks with Significantly Lower Energy Consumption</div>
+  <div class="where">arXiv:2602.19260 · Tufts HRI Lab (Matthias Scheutz 等) · ICRA 2026</div>
+  <ul>
+    <li>任务：Robosuite 中 Franka Panda 解汉诺塔（每轮起始位置抖动约 1 cm）。三方对比：端到端 VLA（π₀ 级）、外部规划器逐步指令的 PG-VLA、神经符号模型 NSM。</li>
+    <li>3 块（训练过的）：NSM <span class="num">95%</span> vs E2E VLA 34% vs PG-VLA 0%。</li>
+    <li>4 块（<strong>未训练过</strong>）：NSM <span class="num">78%</span> vs 两个 VLA <span class="num">0%</span>。</li>
+    <li>训练能耗：VLA 68.5 MJ / 1 天 16 小时 vs NSM 0.85 MJ / 34 分钟（约 <span class="num">80×</span>）。用的示教数 50 vs 300。</li>
+    <li>解读要谨慎：任务高度结构化、规则明确，正好是符号方法的舒适区。它证明的不是「符号全面胜过 VLA」，而是<strong>在有清晰结构的任务上为开放性付出的代价是不必要的</strong>。</li>
+  </ul>
+</div>
+
+<h2 id="s8">8. 综述与 Benchmark</h2>
+
+<table>
+<thead><tr><th style="width:34%">文献</th><th style="width:16%">出处</th><th>要点</th></tr></thead>
+<tbody>
+<tr><td>LLMs as Planning Formalizers: A Survey for Leveraging LLMs to Construct Automated Planning Models</td><td>ACL 2025 Findings<br>arXiv:2503.18971</td><td>明确把 LLM 定位为<strong>「规划建模者」</strong>而非规划器：提取与改进规划模型，支持可靠的现成 AP 规划器。是这份调研里最契合当前范式的一篇综述。</td></tr>
+<tr><td>Neuro-Symbolic AI: Towards Improving the Reasoning Abilities of LLMs</td><td>IJCAI 2025 Survey Track<br>arXiv:2508.13678</td><td>三分法 taxonomy：<strong>Symbolic→LLM / LLM→Symbolic / LLM+Symbolic</strong>（本报告分类即沿用）。附带 GitHub 论文库。</td></tr>
+<tr><td>Neuro-symbolic agentic AI: Architectures, integration patterns, applications, open challenges</td><td>Information Fusion 2026</td><td>PRISMA 方法系统分析 178 篇（2020–2025.11）。整合维度分布：学习/推理 63%、知识表示 44%、逻辑/推理 35%、可解释/可信 28%、<strong>元认知仅 5%</strong>（作者认为被严重低估）。声称机器人任务完成度平均 +23%。</td></tr>
+<tr><td>Survey of Multi-Robot Task Planning: From Symbolic Decomposition to Neuro-Symbolic Embodied Intelligence</td><td>《控制与决策》类中文刊<br>DOI 10.13976/j.cnki.xk.2025.3873</td><td>中文视角。要点：LLM 规划需经 RL 值函数做<strong>物理可供性过滤</strong>（动作概率 = 语义先验 × 物理成功概率）；指出<strong>离散任务规划与连续运动规划之间的「可行性鸿沟」</strong>需在混合整数空间联合优化。</td></tr>
+<tr><td>PlanBench</td><td>NeurIPS 2023 D&amp;B<br>+ TMLR 2025 (o1 评估)</td><td>基于 IPC 域的可扩展基准（Blocksworld / Logistics），除计划生成外还测最优性、验证、执行推理、重规划、泛化等 8 个维度。榜单显示：DeepSeek-R1 在 NL Blocksworld 达 99.1%，但 Mystery Blocksworld 仅 43.3%、Randomized Mystery 25.8%——<strong>换名即崩，说明是记忆而非规划</strong>。</td></tr>
+<tr><td>MAT-THOR / SafeAgentBench / ALFRED-LTL / VirtualHome-LTL / Tacit-FLE</td><td>各论文配套</td><td>多机器人长程、安全、LTL 标注、隐藏故障诊断四类新基准，是当前做实验最常被引用的几个。</td></tr>
+</tbody>
+</table>
+
+<h2 id="s9">9. 六条趋势判断</h2>
+
+<ol class="tight">
+  <li><strong>LLM 的角色重新定位：从规划器 → 建模者 / 提议者。</strong>「让 LLM 直接吐动作序列」这条路线在 2025 年基本被证伪（执行保真度、几何细节反噬、能耗三重证据）。现在的主流是 LLM 负责 PDDL 建模、目标态生成、启发式剪枝、代价函数设计。</li>
+  <li><strong>符号层的职责从「拒绝」升级为「解释 + 修复」。</strong>VIRF 的教学式因果反馈、LogicGuard 的约束生成、Kinodynamic TAMP 的 VLM 回溯——共同点是符号层不只说「不行」，而是说「为什么不行、往哪改」。</li>
+  <li><strong>纵向：符号从任务层下探到运动与控制层。</strong>TAMP 的动力学验证、MPPI 代价函数设计（CoRAL）、VLA 内部符号 primitive 接口（NS-VLA）。「离散-连续可行性鸿沟」正在被当作核心问题而非工程细节。</li>
+  <li><strong>横向：多机器人 / 异构团队成为主战场。</strong>LaMMA-P、FLEET、层级树任务规划、MRBTP——共同难题是能力感知的分配 + 时序协调 + 长程分解。LLM 的增量主要体现在「能力 ↔ 任务」的语义匹配上（FLEET 的消融直接证明了这一点）。</li>
+  <li><strong>小模型 + 合成数据 + 本地部署是工程落地线。</strong>Gideon 用 1.5B 模型做到 66–70% 合法计划率，代价是大量合成数据；SCLPlan 每任务省 2 万 token。这一支和「能耗」论证（The Price Is Not Right）在指向同一个结论。</li>
+  <li><strong>评估范式在换轴。</strong>从「成功率」扩展到：执行保真度、危险动作率（HAR）、目标条件率（GCR）、修正轮数、能耗、token 消耗、分布外鲁棒性。<strong>只会报成功率的论文越来越难站住。</strong></li>
+</ol>
+
+<h3>仍未解决的开放问题</h3>
+<ul class="tight">
+  <li><strong>Symbol Grounding</strong>：符号谓词与真实感知之间的绑定仍是最大脆弱点；PSALM-V 式的「从执行结果反推语义」是目前最有希望的方向之一。</li>
+  <li><strong>开放世界的域归纳</strong>：如何不依赖专家手写域、在部分可观测与底层操作失败的情况下维护正确的动作模型。</li>
+  <li><strong>验证的可扩展性</strong>：高维连续状态空间上的形式验证代价仍然很高；NeuroStrata 明确把它列为首要障碍。</li>
+  <li><strong>可复现性</strong>：178 篇综述把 reproducibility 列为持续性挑战——prompt、模型版本、数据生成流水线的差异让跨论文比较困难。</li>
+  <li><strong>元认知缺失</strong>：agent 何时该知道自己不知道、何时该求助或切换策略，仅占文献 5%。</li>
+</ul>
+
+<h2 id="s10">10. 结合 BT + PDDL 的选题建议</h2>
+
+<p>考虑到当前工作（PDDL → 行为树扩展、多机器人 BT 规划），以下几个缺口在文献里是明确存在的：</p>
+
+<div class="card">
+  <div class="title">方向 1：LLM 生成 BT 的形式化保证（最直接的缺口）</div>
+  <ul>
+    <li>现状：LLM-as-BT-Planner 给出一步/迭代/人机协作/递归四种策略，但<strong>正确性靠模拟器反馈或人工</strong>；BT-ACTION 靠测试驱动与用户研究。</li>
+    <li>缺口：BT 有明确的语义与成熟的可靠性/完备性理论（MRBTP 就用了），<strong>完全可以把 BT 转成时序逻辑公式或 SMT 约束做前置校验</strong>——用 SCLPlan 的 PV 思路或 VIRF 的 tutor 思路，但验证对象从「动作序列」换成「树结构」。</li>
+    <li>卖点：BT 比线性计划<strong>更适合做形式化验证</strong>（反应式、带 fallback、可组合），这是 BT 相对 PDDL 计划序列的差异化优势，但目前没人把它讲成卖点。</li>
+  </ul>
+</div>
+
+<div class="card">
+  <div class="title">方向 2：失败驱动的 BT 修复（对标 VIRF / LogicGuard）</div>
+  <ul>
+    <li>把 VIRF 的「逻辑导师给因果反馈」搬到 BT：执行失败时，符号层定位到具体条件节点/子树，给出「为什么这个 precondition 不成立」的解释，LLM 据此做<strong>局部修复而非整体重规划</strong>。</li>
+    <li>可量化的指标很自然：修正轮数、修复后子树的复用率、局部 vs 全局重规划的 token/时间对比。</li>
+  </ul>
+</div>
+
+<div class="card">
+  <div class="title">方向 3：多机器人 + BT + 能力感知分配</div>
+  <ul>
+    <li>MRBTP 已有「LLM 预规划长程子树」的插件；FLEET 证明了 LLM 在能力耦合型分配上的决定性作用，两者可以直接缝合：<strong>LLM 做 robot–task 适配 → BT 跨树扩展做协调 → MILP/调度器处理时序</strong>。</li>
+    <li>缺口：异构团队的 BT 目前缺统一的能力建模层，也缺公开的长程基准（MAT-THOR 是 PDDL 侧的，BT 侧没有对等物）。</li>
+  </ul>
+</div>
+
+<div class="card">
+  <div class="title">方向 4：把「执行保真度 / 能耗」这套评估轴引进 BT 文献</div>
+  <ul>
+    <li>目前 BT + LLM 的论文基本只报成功率。援引 2507.23589 与 2602.19260 的方法论，做一份「BT 符号规划 vs LLM 直接规划」在<strong>执行保真度、修正成本、能耗</strong>上的对照评测，本身就是有引用价值的贡献。</li>
+  </ul>
+</div>
+
+<div class="card">
+  <div class="title">方向 5：开放世界的 BT 条件归纳</div>
+  <ul>
+    <li>PSALM-V 的思路（从执行结果 + 错误解释反推 pre/post-condition）迁到 BT 的<strong>条件节点</strong>上：BT 的执行轨迹天然带成功/失败/Running 三值信号，比线性计划提供更丰富的监督信号，这一点是 BT 独有的优势，值得写出来。</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2>附：核心文献速查表</h2>
+<table>
+<thead><tr><th style="width:8%">年份</th><th style="width:36%">工作</th><th style="width:16%">发表</th><th style="width:14%">类别</th><th>一句话</th></tr></thead>
+<tbody>
+<tr><td>2023</td><td>PlanBench</td><td>NeurIPS D&amp;B</td><td><span class="tag t-e">E</span></td><td>基于 IPC 域的 LLM 规划能力基准，8 个维度</td></tr>
+<tr><td>2023</td><td>SayPlan</td><td>CoRL</td><td><span class="tag t-b">B</span></td><td>3D 场景图接地 LLM，语义搜索 + 迭代重规划</td></tr>
+<tr><td>2024</td><td>LLM-as-BT-Planner</td><td>arXiv 2409.10444</td><td><span class="tag t-b">B</span></td><td>四种策略让 LLM 生成行为树</td></tr>
+<tr><td>2025</td><td>MRBTP</td><td>AAAI</td><td><span class="tag t-b">B</span></td><td>多机器人 BT 规划，带可靠性/完备性保证 + LLM 插件</td></tr>
+<tr><td>2025</td><td>SELP</td><td>ICRA</td><td><span class="tag t-a">A</span></td><td>NL→LTL + 等价投票 + 约束解码</td></tr>
+<tr><td>2025</td><td>LaMMA-P</td><td>ICRA</td><td><span class="tag t-b">B</span></td><td>LLM 驱动 PDDL 的多智能体长程规划，MAT-THOR 基准</td></tr>
+<tr><td>2025</td><td>LLM 构建层级任务树</td><td>ICRA</td><td><span class="tag t-b">B</span></td><td>API 约束的 TAEMS 式层级树 + 启发式 MRTA</td></tr>
+<tr><td>2025</td><td>Code-as-Symbolic-Planner</td><td>IROS</td><td><span class="tag t-a">A</span></td><td>让 LLM 写代码当 solver/checker，而非调 API</td></tr>
+<tr><td>2025</td><td>LLMs as Planning Formalizers</td><td>ACL Findings</td><td>综述</td><td>LLM 应做规划建模者，把求解交给 AP 规划器</td></tr>
+<tr><td>2025</td><td>Gideon</td><td>IAS</td><td><span class="tag t-b">B</span></td><td>本地 1.5B 模型 + 合成数据做神经符号规划</td></tr>
+<tr><td>2025</td><td>PSALM-V</td><td>arXiv 2506.20097</td><td><span class="tag t-b">B</span></td><td>从视觉交互中归纳 PDDL 动作语义</td></tr>
+<tr><td>2025</td><td>SCLPlan</td><td>arXiv 2510.06357</td><td><span class="tag t-a">A</span></td><td>PDDL 作护栏，前置条件验证 +40%</td></tr>
+<tr><td>2025</td><td>FLEET</td><td>arXiv 2510.07417</td><td><span class="tag t-b">B</span></td><td>LLM 任务图 + MILP 调度的异构团队编排</td></tr>
+<tr><td>2025</td><td>LogicGuard</td><td>arXiv 2507.03293</td><td><span class="tag t-c">C</span></td><td>LTL critic 屏蔽 LLM actor 的不安全行为</td></tr>
+<tr><td>2025</td><td>VerifyLLM</td><td>arXiv 2507.05118</td><td><span class="tag t-c">C</span></td><td>执行前计划校验 + LTL 标注数据集</td></tr>
+<tr><td>2025</td><td>SENTINEL</td><td>arXiv 2510.12985</td><td><span class="tag t-c">C</span></td><td>语义/计划/轨迹三层形式化安全评估</td></tr>
+<tr><td>2025</td><td>Kinodynamic TAMP (VLM 回溯)</td><td>arXiv 2510.26139</td><td><span class="tag t-c">C</span></td><td>混合状态树 + 物理仿真验证 + VLM 回溯</td></tr>
+<tr><td>2025</td><td>LLM 能替代经典规划吗</td><td>arXiv 2507.23589</td><td><span class="tag t-e">E</span></td><td>执行保真度：FD 100%，最好的模型 80%</td></tr>
+<tr><td>2025</td><td>LLM for TAMP 系统研究 (PDDLStream)</td><td>arXiv 2510.00182</td><td><span class="tag t-e">E</span></td><td>16 种集成方式、4950 问题，LLM 版全面更差</td></tr>
+<tr><td>2025</td><td>NeuroStrata</td><td>FSE IVR</td><td><span class="tag t-d">D</span></td><td>三层分层神经符号 + LLM 规约挖掘</td></tr>
+<tr><td>2025</td><td>Neuro-Symbolic AI for LLM Reasoning</td><td>IJCAI Survey</td><td>综述</td><td>Symbolic→LLM / LLM→Symbolic / LLM+Symbolic</td></tr>
+<tr><td>2026</td><td>VIRF</td><td>ICLR</td><td><span class="tag t-c">C</span></td><td>逻辑导师给因果反馈，HAR 0% + GCR 77.3%</td></tr>
+<tr><td>2026</td><td>CoRAL</td><td>RSS</td><td><span class="tag t-d">D</span></td><td>LLM 当代价设计师，给 MPPI 生成目标函数</td></tr>
+<tr><td>2026</td><td>NS-VLA</td><td>arXiv 2603.09542</td><td><span class="tag t-d">D</span></td><td>VLA 内的符号 primitive 指针 + 分层优化</td></tr>
+<tr><td>2026</td><td>The Price Is Not Right</td><td>ICRA (arXiv 2602.19260)</td><td><span class="tag t-e">E</span></td><td>结构化长程任务上 NSM 胜 VLA，能耗 1/80</td></tr>
+<tr><td>2026</td><td>OntoAct</td><td>arXiv 2610.21983</td><td><span class="tag t-b">B</span></td><td>本体抽象 + 假设验证，Tacit-FLE 基准</td></tr>
+<tr><td>2026</td><td>Neuro-symbolic agentic AI</td><td>Information Fusion</td><td>综述</td><td>178 篇 PRISMA 系统综述</td></tr>
+</tbody>
+</table>
+
+<p class="note" style="margin-top:28px">
+说明：本表基于公开检索整理，arXiv 编号以检索来源标注为准；个别 2026 年条目（CoRAL、OntoAct、The Price Is Not Right）来自会议/媒体报道与索引站点，正式引用前建议核对 arXiv 原文。标注为「估算/二手」的数字请勿直接写进论文正文。
+</p>
+
+</div>
+</body>
+</html>
